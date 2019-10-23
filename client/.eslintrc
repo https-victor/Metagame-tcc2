@@ -1,0 +1,44 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "no-underscore-dangle":"off",
+    "camelcase":"off",
+    "no-unused-vars": "off",
+    // Deletar depois
+    "max-len": "off",
+    "no-console": "off",
+    //
+    "@typescript-eslint/no-unused-vars": "error",
+    "no-useless-constructor": "off",
+    "@typescript-eslint/no-useless-constructor": "error",
+    "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
+    "import/prefer-default-export": "off",
+    "eqeqeq": "off",
+    "linebreak-style": "off",
+    "no-shadow": "off",
+    "prefer-const":"off",
+    "no-prototype-builtins":"off",
+    "func-names":"off",
+    "no-trailing-spaces": "off",
+    "padded-blocks": "off",
+    "no-confusing-arrow": "off",
+    "no-nested-ternary": "off"
+  },
+  "extends": ["airbnb"],
+  "settings": {
+    "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
+    },
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  }
+}

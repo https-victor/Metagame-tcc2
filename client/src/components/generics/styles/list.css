@@ -1,0 +1,25 @@
+
+.list-view .ant-list-item{
+    padding: 8px
+}
+
+.list-view .ant-list-item .list-item-title{
+    color: rgba(0, 0, 0, 0.85);
+    font-weight: 500;
+    margin-right: 30px
+}
+
+.list-view.no-padding .ant-list-item{
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.list-view.dense .ant-list-sm .ant-list-item{
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.list-view .ant-list-item .list-item-small-title{
+    font-size: 0.6rem;
+    color: #159897;
+}

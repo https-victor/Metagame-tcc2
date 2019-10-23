@@ -41,6 +41,10 @@ router.post('/' ,[
             return res.status(400).json({ errors: [{msg: 'Invalid Credentials', type: 'credentials'}]});
         }
 
+        if(!user.status){
+            return res.status(400).json({ errors: [{msg: 'User deactivated from database', type: 'database'}]});
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
 
         if(!isMatch){

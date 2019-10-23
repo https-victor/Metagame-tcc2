@@ -1,0 +1,11 @@
+.table-container .ant-table{
+    border-radius: 0;
+}
+
+.table-container .ant-table-row td .btn-container {
+    text-align: end;
+}
+
+.table-container .ant-table-row td .btn-container .ant-btn ~ .ant-btn{
+    margin-left: 8px;
+}

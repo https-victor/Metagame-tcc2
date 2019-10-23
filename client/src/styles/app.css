@@ -1,0 +1,212 @@
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Roboto Regular'), 
+       local('Roboto-Regular'), 
+       url(http://themes.googleusercontent.com/static/fonts/roboto/v11/2UX7WLTfW3W8TclTUvlFyQ.woff) 
+       format('woff');
+}
+
+/* General */
+:root {
+  --PRIMARY: #756DA9;
+  --SECONDARY: #EF925E;
+  --GREY: #5B5B5B;
+}
+
+body{
+  font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+p, h1{
+  margin:0;
+  font-size: 1rem;
+}
+
+.hero-image{
+  background: white;
+}
+
+/* Header */
+
+.page-header{
+  background: var(--GREY);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-header > :first-child{
+  margin-left: 1rem;
+}
+
+.page-header > :last-child{
+  margin-right: 1rem;
+}
+
+/* Logo Container */
+
+.logo-container{
+  width: max-content;
+  height: min-content;
+  display: flex;
+  align-items: center;
+}
+
+.logo-container p {
+  color: white;
+  margin-left: 1rem;
+  /* font-weight: bold; */
+  font-size: 1.5rem;
+}
+
+.logo-container svg:first-of-type{
+  margin-right: 1rem;
+}
+
+/* Actions Container */
+
+.actions-container .ant-btn ~ .ant-btn {
+  margin-left: 0.5rem;
+}
+
+/* Content */
+
+.page-container .logo-container{
+  
+}
+
+.page-container{
+  height: 100%;
+  display: grid;
+  grid-template-rows: 80px calc( 100vh - 80px);
+}
+
+.landing-page-container{
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+}
+
+.landing-page-container .hero-image:first-of-type {
+  background: var(--PRIMARY);
+}
+
+.hero-image{
+  padding: 1rem 6rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.hero-text{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-text.signup p, .hero-text.signup h1{
+  color: var(--SECONDARY);
+  font-weight: bold;
+  font-size: 2.5rem;
+}
+.hero-text.signup h1{
+  color: white;
+}
+
+.hero-text.info {
+  width: 500px;
+}
+
+.strong{
+  font-weight: bold;
+}
+
+.hero-text.info h2{
+  color: var(--PRIMARY);
+  font-weight: bold;
+  font-size: 2.5rem;
+}
+.hero-text.info p{
+  color: var(--GREY);
+  font-size: 1.1rem;
+}
+
+
+.hero-text-container{
+  width: calc( 100% - 250px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-text-container .ant-btn {
+  margin-top: 1rem;
+  width: max-content;
+  height: max-content;
+  padding: 0.7rem 1.6rem;
+}
+
+#root {
+  height: 100%;
+}
+
+
+/* Components */
+
+.ant-btn span{
+  font-size: 1rem;
+  /* font-weight: bold; */
+}
+
+/* App */
+
+.app-footer{
+  width: 100vw;
+  height: 80px;
+  background-color: var(--SECONDARY);
+}
+.app-container{
+  height: calc( 100vh - 80px );
+}
+
+.app-layout{
+  display: flex;
+  flex-direction: column;
+}
+
+.app{
+  grid-area: app;
+}
+
+.app-drawer{
+  background-color: var(--SECONDARY);
+  filter: brightness(80%);
+  z-index: 7;
+  width: 400px;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.app-layout.hidden .app-drawer{
+  display: none;
+}
+
+.app-footer{
+  grid-area: footer;
+  z-index: 8;
+  position: relative;
+}
+
+.menu-btn{
+  position: absolute;
+  bottom: 20px;
+  left: calc( (( 100% - 400px ) / 2 ) - 50px);
+}
+
+.app-layout.hidden .menu-btn{
+  left: calc( 50% - 50px );
+}

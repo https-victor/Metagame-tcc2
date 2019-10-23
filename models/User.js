@@ -24,6 +24,14 @@ const UserSchema = mongoose.Schema({
   birthdate: {
     type: Date,
     default: Date.now
+  },
+  status: {
+    type: Boolean,
+    default: true
+  },
+  role: {
+    type: String,
+    default: 1
   }
 });
 

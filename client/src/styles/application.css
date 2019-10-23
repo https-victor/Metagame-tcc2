@@ -1,0 +1,33 @@
+.app-footer{
+    width: 100%;
+    height: 80px;
+    background-color: #ef925e;
+}
+.app-container{
+    height: calc( 100vh - 80px );
+}
+
+.app-layout{
+
+}
+
+.app-layout.hidden{
+
+}
+
+.app{
+    height: calc( 100% - 80px );
+    width: 70%;
+}
+
+.app-drawer{
+    width: 30%;
+    height: calc( 100% - 80px);
+    background-color: #ef925e;
+    filter: brightness(80%);
+}
+
+.app-footer{
+    position: absolute;
+    bottom: 0;
+}
