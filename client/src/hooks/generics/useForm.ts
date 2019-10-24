@@ -86,8 +86,14 @@ export const useForm = (
       onSet(formErrors, 'errors');
       return Promise.reject(new Error('clienterror'));
     } catch (responseErrors) {
-      const isErrorJson = (responseErrors.status === 422 || (responseErrors.status >= 200 && responseErrors.status < 300)) && responseErrors.status !== 204;
-      const parsedErrors = await isErrorJson ? responseErrors.json() : responseErrors;
+      const isErrorJson = (responseErrors.status === 422
+          || responseErrors.status === 400
+          || (responseErrors.status >= 200 && responseErrors.status < 300))
+        && responseErrors.status !== 204;
+      const parsedErrors = isErrorJson
+        ? await responseErrors.json()
+        : responseErrors;
+      console.log(parsedErrors);
       onSet(formatterErrors(parsedErrors), 'errors');
       return Promise.reject(responseErrors);
     }

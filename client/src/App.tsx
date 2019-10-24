@@ -32,7 +32,7 @@ function App({ props }: any) {
     }
     default:
       root = (
-        <Route exact path="/" component={LandingPage} />
+        <Route path="/" component={LandingPage} />
       );
   }
 

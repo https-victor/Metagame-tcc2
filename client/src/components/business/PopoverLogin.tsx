@@ -4,7 +4,7 @@ import { LoginForm } from '../forms/LoginForm';
 
 export const PopoverLogin = ({ form, onLogin }: any) => {
   const {
-    onSubmit, onChange, values, errors, onBlur, 
+    onChange, values, errors, onBlur, 
   } = form;
   return (
     <div>
