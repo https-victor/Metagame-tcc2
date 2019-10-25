@@ -17,6 +17,12 @@ export const useApp = (props: any) => {
     setUser({}).then(() => setIsLogged(false).then(() => globalLoading.onChange(false)));
   }
 
+  function resetLogin() {
+    globalLoading.onChange(true);
+    localStorage.removeItem('jwt');
+    setUser({}).then(() => setIsLogged(false).then(() => globalLoading.onChange(false)));
+  }
+
   const onSetMessage = (
     msg: any,
     type: 'error' | 'success' | 'info' | 'warn' = 'error',
@@ -174,8 +180,10 @@ export const useApp = (props: any) => {
 
     if (localStorage.getItem('jwt') !== null) {
       loginFromJwt();
+      console.log('testou')
     } else {
-      onLogout();
+      resetLogin();
+      console.log('teste');
     }
   }, []);
 

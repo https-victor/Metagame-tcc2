@@ -21,7 +21,8 @@ export const initialTokenProps = {
   alpha: 1,
 };
 
-export const Application = ({onReturn}:any) => {
+export const Application = ({ game }: any) => {
+  console.log(game);
   console.log(window.innerWidth);
   const [teste, setTeste] = useState(false);
 
@@ -45,7 +46,6 @@ export const Application = ({onReturn}:any) => {
 
   return (
     <div className={`app-layout ${drawer ? '' : 'hidden'}`}>
-      
       <div className="app-container">
         <Stage
           className="app"

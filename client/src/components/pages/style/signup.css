@@ -1,0 +1,54 @@
+.page.center{
+    display: flex;
+    justify-content: space-between;
+}
+
+.card{
+    width: calc( 100% - 700px);
+    padding: 3rem 5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card p{
+    margin: 0;
+    font-size: 2.4rem;
+    color: white;
+    text-align: center;
+}
+
+.card .ant-btn{
+    margin: 0 auto;
+    display: block;
+    margin-top: 1rem;
+}
+.sign-up-container{
+    width: 100%;
+    height: min-content;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background: #EF925E;
+    border: 1px solid #e3e3e3;
+    border-radius: 15px;
+}
+
+.sign-up .ant-form-item-label{
+text-align: left;
+}
+.sign-up .ant-form-item-label label{
+    color: white;
+}
+
+.hero-container{
+    width: 700px;
+    background-color: #756DA9;
+}
+
+.page.center .card .ant-btn{
+    height: 50px;
+    border-radius: 10px;
+    background: #756DA9 ;
+}

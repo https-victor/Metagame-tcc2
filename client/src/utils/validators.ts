@@ -23,6 +23,13 @@ export function validateEmail(email: any) {
   return undefined;
 }
 
+export function validateName(name: any) {
+  if (isFieldEmpty(name)) {
+    return 'Informe um nome.';
+  }
+  return undefined;
+}
+
 export function isDifferent(firstValue: any, secondValue: any) {
   return firstValue !== secondValue;
 }
@@ -70,6 +77,7 @@ export const loginFormValidators = {
 };
 
 export const signUpFormValidators = {
+  name: validateName,
   email: validateEmail,
   password: validatePassword,
   confirmPassword: validateConfirmPassword,

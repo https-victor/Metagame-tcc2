@@ -5,15 +5,42 @@ const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Game = require('../models/Game');
 
-// @route   GET api/games
+// @route   GET api/games/:filter?
 // @desc    Get all users games
 // @access  Private
-router.get('/', auth, async (req, res) => {
+router.get('/:filter?', auth, async (req, res) => {
   try {
-    const games = await Game.find({ gmId: req.user.id, status: true }).sort({
-      createdAt: -1
-    });
-    res.json(games);
+    switch(req.params.filter){
+      case 'my':{
+        const myGames = await Game.find({ gmId: req.user.id, status: true }).sort({
+          createdAt: -1
+        });
+        res.json([...myGames]);
+      }
+      case 'subscribed':{
+        const {games} = await User.findById(req.user.id,'games');
+        const otherGames = await Game.find({'_id': {$in: games}, status: true});
+        res.json([...otherGames]);
+      }
+      case 'all': {
+        const myGames = await Game.find({ gmId: req.user.id, status: true }).sort({
+          createdAt: -1
+        });
+  
+        const {games} = await User.findById(req.user.id,'games');
+        const otherGames = await Game.find({'_id': {$in: games}, status: true});
+        res.json([...myGames, ...otherGames]);
+      }
+      default:{
+        const myGames = await Game.find({ gmId: req.user.id, status: true }).sort({
+          createdAt: -1
+        });
+
+        const {games} = await User.findById(req.user.id,'games');
+        const otherGames = await Game.find({'_id': {$in: games}, status: true});
+        res.json({myGames, otherGames});
+      }
+    }
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ errors: [{ msg: 'Server Error', type: 'server' }] });
@@ -142,8 +169,15 @@ router.post('/:id/subscribe', auth, async (req, res) => {
         });
     }
     const newPlayers = [{ _id: req.user.id }, ...game.players];
+    const newGames = [{_id: game._id}, ...req.user.games||[]];
 
     
+    await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { games: newGames } },
+      { new: true }
+    );
+
     game = await Game.findByIdAndUpdate(
       req.params.id,
       { $set: { players: newPlayers } },

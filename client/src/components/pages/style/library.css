@@ -1,0 +1,37 @@
+.library-page-container{
+    position: relative;
+}
+
+.library-header{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70px;
+
+}
+
+.library-header > * ~ * {
+    margin-left: 1rem!important;
+}
+
+.library-wrapper {
+    height: calc( 100% - 70px );
+    display: flex;
+}
+
+.container{
+    overflow-y: overlay;
+    width: calc( 100% - 400px);
+    border-top: 1px solid #e3e3e3;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
+    gap: 33px;
+    background: #CACACA;
+}
+
+.library-sider {
+    width: 400px;
+    background: #5B5B5B;
+
+}

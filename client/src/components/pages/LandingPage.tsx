@@ -12,10 +12,10 @@ import {
   signUpFormValidators,
 } from '../../utils/validators';
 import { AppContext } from '../../hooks/contexts';
-import { formatterLoginFormErrors } from '../../utils/formatters';
+import { formatterLoginFormErrors, formatterSignUpFormErrors } from '../../utils/formatters';
 
-export const LandingPage = ({ push }: any) => {
-  const { auth, message } = useContext<any>(AppContext);
+export const LandingPage = () => {
+  const { auth, message, history } = useContext<any>(AppContext);
   const [loginPopOver, setLoginPopOver] = useState(false);
   const loginForm = useForm(loginFormValidators);
   const signUpForm = useForm(signUpFormValidators);
@@ -47,7 +47,32 @@ export const LandingPage = ({ push }: any) => {
     }
   }
 
-  console.log(loginForm.errors)
+  async function onSignUp(e: any) {
+    e.preventDefault();
+    signUpForm.onSet({ credentials: undefined }, 'errors');
+    try {
+      const json = await signUpForm.onSubmit(
+        {
+          path: 'users',
+          method: 'POST',
+          body: {
+            name: signUpForm.values.name,
+            email: signUpForm.values.email,
+            password: signUpForm.values.password,
+          },
+        },
+        formatterSignUpFormErrors,
+      );
+      history.push('/');
+      auth.onLogin(json.token);
+    } catch (e) {
+      message.handleErrors(
+        e,
+        'Por favor, preencha os campos obrigatórios do formulário!',
+      );
+    }
+  }
+  
   return (
     <div className="app-container">
       <div className="page-container">
@@ -65,30 +90,30 @@ export const LandingPage = ({ push }: any) => {
               onVisibleChange={handlePopoverChange}
             >
               <Button type="link" ghost>
-                Sign In
+                Entrar
               </Button>
             </Popover>
             <Link to="/signup">
               <Button type="default" ghost>
-                Sign Up
+                Cadastrar-se
               </Button>
             </Link>
           </div>
         </div>
         <Switch>
           <Route
-            exact
-            path="/"
-            render={(props: any) => <Welcome push={props.history.push} />}
-          />
-          <Route
             path="/signup"
             render={(props: any) => (
               <SignUp
                 form={signUpForm}
-                onSignUp={() => props.history.push('/')}
+                onSignUp={onSignUp}
               />
             )}
+          />
+          <Route
+            exact
+            path="/"
+            render={(props: any) => <Welcome />}
           />
         </Switch>
       </div>

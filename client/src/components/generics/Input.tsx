@@ -8,6 +8,7 @@ import {
 } from 'antd/lib/input';
 import { InputNumberProps } from 'antd/lib/input-number';
 import Form, { FormItemProps } from 'antd/lib/form';
+import './styles/input.css';
 
 //  O componente de máscara do react-text-mask utiliza o onChange e passa para o Input do AntDesign através
 //  dos props que a função renderInput fornece. Portanto, o onChange pode assumir diversos tipos, sendo o tipo
