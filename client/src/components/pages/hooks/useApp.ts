@@ -5,7 +5,7 @@ import { useLoading } from '../../../hooks/providers/useLoading';
 import { useAsyncState } from '../../../utils/functions';
 
 export const useApp = (props: any) => {
-  const defaultHost = `http://${window.location.hostname}:5000/api/`;
+  const defaultHost = `${window.location.protocol}//${window.location.hostname}:5000/api/`;
   const globalLoading = useLoading(true);
   const [user, setUser] = useAsyncState({});
   const [isLogged, setIsLogged] = useAsyncState(false);
