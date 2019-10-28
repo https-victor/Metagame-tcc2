@@ -1,12 +1,4 @@
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Roboto Regular'), 
-       local('Roboto-Regular'), 
-       url(http://themes.googleusercontent.com/static/fonts/roboto/v11/2UX7WLTfW3W8TclTUvlFyQ.woff) 
-       format('woff');
-}
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
 
 /* General */
 :root {
@@ -16,7 +8,7 @@
 }
 
 body{
-  font-family: Roboto, Oxygen, Ubuntu, Canrell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Roboto', Oxygen, Ubuntu, Canrell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 p, h1{
