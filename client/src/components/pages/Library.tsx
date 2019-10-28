@@ -1,4 +1,4 @@
-import React, { useContext, Fragment } from 'react';
+import React, { useContext, Fragment, useState } from 'react';
 import {
   Button, Icon, Spin, Empty, 
 } from 'antd';
@@ -10,25 +10,144 @@ import './style/library.css';
 import { GameContext } from '../../hooks/contexts/GameContext';
 import { useForm } from '../../hooks/generics/useForm';
 import { AppContext } from '../../hooks/contexts';
+import { GameForm } from '../forms/GameForm';
+import { GameDetails } from '../business/GameDetails';
+import { gameValidators } from '../../utils/validators';
 
 export const Library = () => {
   const { games, getGames } = useLibrary();
-  const addGameForm = useForm(undefined, {
-    name: 'TesteForm',
-    description: 'DescriptionForm',
-  });
+  const [siderMode, setSiderMode] = useState('');
+  const gameForm = useForm(gameValidators, {});
   const { onRequest, history } = useContext<any>(AppContext);
-  const { openGame } = useContext<any>(GameContext);
+  const { game } = useContext<any>(GameContext);
+
+  const { openGame, setGame } = game;
+  // openGame(game)
+  // trycatch
+
+  function openSider(mode: string, selectedGame?: any) {
+    return () => {
+      setSiderMode(mode);
+      if (mode === 'edit') {
+        gameForm.onSet({ name: game.name, description: game.description });
+        gameForm.onReset('errors');
+      } else if (mode === 'add') {
+        setGame({});
+        gameForm.onReset();
+      }
+      if (mode === 'details') {
+        if (selectedGame) {
+          setGame(selectedGame);
+        }
+      }
+    };
+  }
+
+  function closeSider() {
+    setSiderMode('');
+    gameForm.onReset();
+    setGame({});
+  }
+
+  async function deleteGame() {
+    try {
+      await gameForm.onSubmit(
+        {
+          path: `games/${game._id}`,
+          method: 'DELETE',
+        },
+        (e: any) => console.log(e),
+      );
+      gameForm.onReset('errors');
+      await games.onSync();
+      closeSider();
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   async function addNewGame() {
-    const newGame = await onRequest({
-      path: 'games/',
-      method: 'POST',
-      body: addGameForm.values,
-    });
-    await games.onSync();
-    openGame(newGame);
+    try {
+      await gameForm.onSubmit(
+        {
+          path: 'games/',
+          method: 'POST',
+          body: gameForm.values,
+        },
+        (e: any) => console.log(e),
+      );
+      gameForm.onReset('errors');
+      await games.onSync();
+      closeSider();
+    } catch (err) {
+      console.log(err);
+    }
   }
+
+  async function editGame() {
+    try {
+      await gameForm.onSubmit(
+        {
+          path: `games/${game._id}`,
+          method: 'PUT',
+          body: gameForm.values,
+        },
+        (e: any) => console.log(e),
+      );
+      gameForm.onReset('errors');
+      await games.onSync();
+      closeSider();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  let actions;
+  switch (siderMode) {
+    case 'add':
+      actions = (
+        <Button type="primary" onClick={addNewGame}>
+          Adicionar
+        </Button>
+      );
+      break;
+    case 'edit':
+      actions = (
+        <Fragment>
+          <Button onClick={openSider('details')}>Cancelar</Button>
+          <Button type="primary" onClick={editGame}>
+            Atualizar
+          </Button>
+        </Fragment>
+      );
+      break;
+    default:
+      actions = (
+        <Fragment>
+          <Button icon="edit" ghost type="primary" onClick={openSider('edit')}>
+            Editar
+          </Button>
+          <Button icon="delete" ghost type="danger" onClick={deleteGame}>
+            Deletar
+          </Button>
+        </Fragment>
+      );
+      break;
+  }
+  let siderBody;
+  switch (siderMode) {
+    case 'details':
+      siderBody = <GameDetails game={game} openGame={openGame} />;
+      break;
+    case 'edit':
+    case 'add':
+      siderBody = <GameForm game={game} form={gameForm} mode={siderMode} />;
+      break;
+    default:
+      siderBody = undefined;
+      break;
+  }
+  console.log(games.loading.state)
   return (
     <div className="library-page-container">
       <div className="library-header">
@@ -45,11 +164,11 @@ export const Library = () => {
         </Button>
         <Input suffix={<Icon type="search" />} placeholder="Pesquisar" />
       </div>
-      <div className="library-wrapper">
-        <div className="container">
-          {games.loading.state ? (
-            <Spin />
-          ) : (
+      <div className={`library-wrapper ${siderMode ? '' : 'hidden'}`}>
+        <div
+          className={`container ${games.loading.state || games.data.length === 0 ? 'center' : ''}`}
+        >
+          {!games.loading.state ? (
             <Fragment>
               {games.data.length !== 0 ? (
                 games.data.map((game: any, idx: any) => (
@@ -57,21 +176,44 @@ export const Library = () => {
                     key={game._id}
                     data={game}
                     tabIndex={idx}
-                    onClick={openGame(game)}
+                    ondblclick={openGame(game)}
+                    onClick={openSider('details', game)}
                   />
                 ))
+              ) : history.location.pathname !== '/biblioteca/inscritos' ? (
+                undefined
               ) : (
-                <Empty />
+                <Empty description="Você não está inscrito em nenhum outro jogo!" />
               )}
               {history.location.pathname !== '/biblioteca/inscritos' ? (
-                <GameCard key="new" className="new" onClick={addNewGame} />
+                <GameCard
+                  key="new"
+                  className="new"
+                  onClick={openSider('add')}
+                />
               ) : (
                 undefined
               )}
             </Fragment>
-          )}
+          ) : (
+          <Spin />)
+        }
         </div>
-        <div className="library-sider" />
+        {siderMode ? (
+          <div className="library-sider">
+            <Button
+              className="close-button"
+              shape="circle"
+              icon="close"
+              type="primary"
+              onClick={closeSider}
+            />
+            {siderBody}
+            <div className="actions-wrapper">{actions}</div>
+          </div>
+        ) : (
+          undefined
+        )}
       </div>
     </div>
   );

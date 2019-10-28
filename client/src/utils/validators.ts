@@ -76,6 +76,10 @@ export const loginFormValidators = {
   password: validatePassword,
 };
 
+export const gameValidators = {
+  name: validateName,
+};
+
 export const signUpFormValidators = {
   name: validateName,
   email: validateEmail,

@@ -1,0 +1,4 @@
+{
+    "mongoURI": "mongodb+srv://https-victor:qscesz753951@metagame-fsbfc.mongodb.net/test?retryWrites=true&w=majority",
+    "jwtSecret": "qsezwcaxd759183426"
+}

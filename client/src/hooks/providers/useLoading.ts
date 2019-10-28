@@ -6,7 +6,7 @@ export type LoadingHook = {
   resetState():void;
 };
 
-export const useLoading = (initialState = false): LoadingHook => {
+export const useLoading = (initialState = true): LoadingHook => {
   const [state, setState] = useState<boolean>(initialState);
 
   function resetState() {

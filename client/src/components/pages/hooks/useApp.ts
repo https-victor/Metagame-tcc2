@@ -180,10 +180,8 @@ export const useApp = (props: any) => {
 
     if (localStorage.getItem('jwt') !== null) {
       loginFromJwt();
-      console.log('testou')
     } else {
       resetLogin();
-      console.log('teste');
     }
   }, []);
 

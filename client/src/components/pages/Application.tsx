@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Stage } from '@inlet/react-pixi';
 import { Button } from 'antd';
 import { Archer } from '../old/Archer';
 import { Grid } from '../old/Grid';
 import Icosahedron from '../../assets/svg/icosahedron.svg';
+import './style/application.css';
+import { GameContext } from '../../hooks/contexts/GameContext';
 
 export type TokenProps = {
   x: number;
@@ -21,7 +23,9 @@ export const initialTokenProps = {
   alpha: 1,
 };
 
-export const Application = ({ game }: any) => {
+export const Application = () => {
+  const { game } = useContext<any>(GameContext);
+  const { closeGame } = game;
   console.log(game);
   console.log(window.innerWidth);
   const [teste, setTeste] = useState(false);
@@ -46,7 +50,7 @@ export const Application = ({ game }: any) => {
 
   return (
     <div className={`app-layout ${drawer ? '' : 'hidden'}`}>
-      <div className="app-container">
+      <div className="vt-container">
         <Stage
           className="app"
           width={stageWidth}
@@ -86,6 +90,12 @@ export const Application = ({ game }: any) => {
           alt="Icosahedron"
         />
         <div className="drawer-btn-container">
+          <Button
+            type="primary"
+            shape="circle"
+            icon="logout"
+            onClick={closeGame}
+          />
           <Button
             type="primary"
             shape="circle"

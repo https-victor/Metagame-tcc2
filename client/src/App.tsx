@@ -15,7 +15,7 @@ function App({ props }: any) {
   const {
     auth, onRequest, globalLoading, message, 
   } = useApp(props);
-
+  const isOpen = history.location.pathname === '/game';
   let root = null;
   switch (true) {
     case auth.isLogged: {
@@ -25,9 +25,9 @@ function App({ props }: any) {
     default:
       root = LandingPage;
   }
-  console.log(history);
+
   return (
-    <div className="app-container">
+    <div className={`app-container ${!isOpen ? 'no-game' : ''}`}>
       <AppContext.Provider
         value={{
           auth,
