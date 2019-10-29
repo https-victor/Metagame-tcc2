@@ -17,7 +17,6 @@ module.exports = {
         '@menu-dark-submenu-bg': '#21ada8',
       },
     })(config);
-    console.log(config);
     return config;
   },
 };

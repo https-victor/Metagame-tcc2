@@ -41,7 +41,7 @@ export const HomePage = () => {
             setGame(lastGame);
           }
         } catch (err) {
-          console.log(err);
+          console.error(err);
           closeGame();
         }
       } else {

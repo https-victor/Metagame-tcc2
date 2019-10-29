@@ -1,7 +1,5 @@
 export function formatterLoginFormErrors(res: any) {
   const { errors } = res;
-  console.log(res);
-
   const newErrors = errors.reduce(
     (acc: any, item: any) => ({
       ...acc,
@@ -15,7 +13,6 @@ export function formatterLoginFormErrors(res: any) {
 
 export function formatterSignUpFormErrors(res: any) {
   const { errors } = res;
-  console.log(res);
 
   const newErrors = errors.reduce(
     (acc: any, item: any) => ({

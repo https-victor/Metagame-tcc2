@@ -93,7 +93,6 @@ export const useForm = (
       const parsedErrors = isErrorJson
         ? await responseErrors.json()
         : responseErrors;
-      console.log(parsedErrors);
       onSet(formatterErrors(parsedErrors), 'errors');
       return Promise.reject(responseErrors);
     }

@@ -26,8 +26,7 @@ export const initialTokenProps = {
 export const Application = () => {
   const { game } = useContext<any>(GameContext);
   const { closeGame } = game;
-  console.log(game);
-  console.log(window.innerWidth);
+  console.log('Actual game:', game);
   const [teste, setTeste] = useState(false);
 
   const [drawer, setDrawer] = useState(false);

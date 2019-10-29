@@ -67,7 +67,6 @@ export const Archer = ({
         const { x, y } = e.data.getLocalPosition(archer.parent);
         const snappedX = x;
         const snappedY = y;
-        console.log(snappedX, snappedY);
         archer.x = snappedX;
         archer.y = snappedY;
       }

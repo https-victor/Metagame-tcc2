@@ -4,7 +4,6 @@ import { Input } from '../generics';
 import { eventTargetValue } from '../../utils/functions';
 
 export const GameForm = ({ game, form, mode }: any) => {
-  console.log(game, form, mode);
   const { values, errors, onChange } = form;
   return (
     <Form className="form-game-wrapper">

@@ -47,7 +47,6 @@ router.get('/:filter?', auth, async (req, res) => {
         if(req.params.filter){
           try {
             let game = await Game.findById(req.params.filter);
-            console.log(game)
             if (!game)
               res
                 .status(404)

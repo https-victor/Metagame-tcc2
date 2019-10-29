@@ -51,18 +51,15 @@ export const Library = () => {
 
   async function deleteGame() {
     try {
-      await gameForm.onSubmit(
-        {
-          path: `games/${game._id}`,
-          method: 'DELETE',
-        },
-        (e: any) => console.log(e),
-      );
+      await onRequest({
+        path: `games/${game._id}`,
+        method: 'DELETE',
+      });
       gameForm.onReset('errors');
       await games.onSync();
       closeSider();
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -80,7 +77,7 @@ export const Library = () => {
       await games.onSync();
       closeSider();
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -98,7 +95,7 @@ export const Library = () => {
       await games.onSync();
       closeSider();
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -147,7 +144,6 @@ export const Library = () => {
       siderBody = undefined;
       break;
   }
-  console.log(games.loading.state)
   return (
     <div className="library-page-container">
       <div className="library-header">
@@ -166,7 +162,13 @@ export const Library = () => {
       </div>
       <div className={`library-wrapper ${siderMode ? '' : 'hidden'}`}>
         <div
-          className={`container ${games.loading.state || games.data.length === 0 ? 'center' : ''}`}
+          className={`container ${
+            games.loading.state
+            || (games.data.length === 0
+              && history.location.pathname === '/biblioteca/inscritos')
+              ? 'center'
+              : ''
+          }`}
         >
           {!games.loading.state ? (
             <Fragment>
@@ -196,8 +198,8 @@ export const Library = () => {
               )}
             </Fragment>
           ) : (
-          <Spin />)
-        }
+            <Spin />
+          )}
         </div>
         {siderMode ? (
           <div className="library-sider">
