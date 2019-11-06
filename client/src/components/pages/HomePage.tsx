@@ -18,7 +18,7 @@ export const HomePage = () => {
     return () => {
       setGame(game);
       localStorage.setItem('gameId', JSON.stringify(game._id));
-      history.push('/game');
+      history.push('/app');
     };
   }
 
@@ -86,7 +86,7 @@ export const HomePage = () => {
         <Switch>
           <Route exact path="/" render={(props: any) => 'Home'} />
           <Route path="/biblioteca" component={Library} />
-          <Route path="/game" render={() => <Application />} />
+          <Route path="/app" render={() => <Application />} />
         </Switch>
       </div>
     </GameContext.Provider>
