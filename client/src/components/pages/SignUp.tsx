@@ -16,7 +16,8 @@ export const SignUp = ({ form, onSignUp }: any) => (
       </div>
     </div>
     <div className="hero-container">
-      <img src={pigeonArcher} alt="" width={250} />
+      <img src={pigeonArcher} alt="" width={350} />
+      <p>Role iniciativa!</p>
     </div>
   </div>
 );

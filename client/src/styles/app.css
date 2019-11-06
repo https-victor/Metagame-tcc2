@@ -69,10 +69,10 @@ p, h1{
   
 }
 
-.page-container.no-game{
+.page-container{
   height: 100%;
   display: grid;
-  grid-template-rows: 80px calc( 100vh - 80px);
+  grid-template-rows: 80px calc( 100% - 80px);
 }
 
 .landing-page-container{
@@ -159,8 +159,8 @@ p, h1{
   height: 80px;
   background-color: var(--SECONDARY);
 }
-.app-container.no-game{
-  height: calc( 100vh - 80px );
+.app-container{
+  height: 100%;
 }
 
 .app-layout{

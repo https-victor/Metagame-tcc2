@@ -4,6 +4,8 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Game = require('../models/Game');
+const mongoose = require('mongoose');
+var ObjectId = require('mongoose').Types.ObjectId;
 
 // @route   GET api/games/:filter?
 // @desc    Get all users games
@@ -44,14 +46,16 @@ router.get('/:filter?', auth, async (req, res) => {
         res.json([...myGames, ...otherGames]);
       }
       default: {
-        if(req.params.filter){
+        if (req.params.filter) {
           try {
             let game = await Game.findById(req.params.filter);
             if (!game)
               res
                 .status(404)
-                .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
-        
+                .json({
+                  errors: [{ msg: 'Game not found', type: 'database' }]
+                });
+
             if (!game.status)
               res.status(400).json({
                 errors: [
@@ -61,12 +65,20 @@ router.get('/:filter?', auth, async (req, res) => {
                   }
                 ]
               });
-            res.json(game);
+            const { players, notes, tokens, ...restGame } = game;
+            const fullPlayers = await User.find({_id: { $in: players}, status: true}).select('_id name email');
+            console.log(fullPlayers);
+            const fullNotes = await User.find({ _id: { $in: notes } });
+            const fullTokens = await User.find({ _id: { $in: tokens } });
+
+            res.json({ ...restGame._doc, players: fullPlayers, notes: fullNotes, tokens: fullTokens  });
           } catch (err) {
             console.error(err.message);
-            res.status(500).json({ errors: [{ msg: 'Server Error', type: 'server' }] });
+            res
+              .status(500)
+              .json({ errors: [{ msg: 'Server Error', type: 'server' }] });
           }
-        }
+        } else{
         const myGames = await Game.find({
           gmId: req.user.id,
           status: true
@@ -81,6 +93,7 @@ router.get('/:filter?', auth, async (req, res) => {
         });
         res.json({ myGames, otherGames });
       }
+    }
     }
   } catch (err) {
     console.error(err.message);
@@ -110,11 +123,12 @@ router.post(
     const { name, description } = req.body;
 
     try {
+      const {_id, name, email} = await User.findById(req.user.id).select('_id name email');
       const newGame = new Game({
         name,
         description,
         gmId: req.user.id,
-        players: [{ _id: req.user.id }]
+        players: [{ _id, name, email}]
       });
 
       const game = await newGame.save();
@@ -199,14 +213,16 @@ router.post('/:id/subscribe', auth, async (req, res) => {
           }
         ]
       });
-    if (!(game.players.filter(playerId => playerId == req.user.id) == false)) {
+    if (!(game.players.filter(playerId => playerId._id == req.user.id) == false)) {
       return res.status(404).json({
         errors: [
           { msg: 'You are already subscribed to this game', type: 'database' }
         ]
       });
     }
-    const newPlayers = [{ _id: req.user.id }, ...game.players];
+    console.log(req.user);
+    const {_id, name, email} = await User.findById(req.user.id).select('_id name email')
+    const newPlayers = [{ _id, name, email }, ...game.players];
     const newGames = [{ _id: game._id }, ...(req.user.games || [])];
 
     await User.findByIdAndUpdate(
@@ -249,7 +265,7 @@ router.post('/:id/unsubscribe', auth, async (req, res) => {
           }
         ]
       });
-    if (game.players.filter(playerId => playerId == req.user.id) == false) {
+    if (game.players.filter(playerId => playerId._id == req.user.id) == false) {
       return res.status(404).json({
         errors: [
           {
@@ -259,7 +275,7 @@ router.post('/:id/unsubscribe', auth, async (req, res) => {
         ]
       });
     }
-    const newPlayers = game.players.filter(playerId => playerId != req.user.id);
+    const newPlayers = game.players.filter(playerId => playerId._id != req.user.id);
 
     game = await Game.findByIdAndUpdate(
       req.params.id,
@@ -318,16 +334,12 @@ router.post(
         });
       }
       if (!req.body.user) {
-        return res
-          .status(401)
-          .json({
-            errors: [
-              { msg: 'User is required to unsubscription', type: 'user' }
-            ]
-          });
+        return res.status(401).json({
+          errors: [{ msg: 'User is required to unsubscription', type: 'user' }]
+        });
       }
       const newPlayers = game.players.filter(
-        playerId => playerId != req.body.user
+        playerId => playerId._id != req.body.user
       );
 
       game = await Game.findByIdAndUpdate(

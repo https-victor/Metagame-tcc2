@@ -44,7 +44,25 @@ text-align: left;
 
 .hero-container{
     width: 700px;
-    background-color: #756DA9;
+    position: relative;
+    background: url('../../../assets/svg/bg-singup.svg') no-repeat right ;
+    background-size: cover;
+}
+
+.hero-container img{
+    position: absolute;
+    top: 20%;
+    left: 30%;
+
+}
+
+.hero-container p{
+    position: absolute;
+    bottom: 15%;
+    left: 40%;
+    color: white;
+    font-size: 2rem;
+
 }
 
 .page.center .card .ant-btn{

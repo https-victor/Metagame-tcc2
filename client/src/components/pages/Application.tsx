@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Stage } from '@inlet/react-pixi';
 import { Button } from 'antd';
 import { Archer } from '../old/Archer';
@@ -25,6 +25,8 @@ export const initialTokenProps = {
 
 export const Application = () => {
   const { game } = useContext<any>(GameContext);
+  const vtContainer = useRef<any>(undefined);
+  console.log(vtContainer)
   const { closeGame } = game;
   console.log('Actual game:', game);
   const [teste, setTeste] = useState(false);
@@ -39,9 +41,6 @@ export const Application = () => {
   const [tokenProps2, setTokenProps2] = useState<TokenProps>(
     initialTokenProps as TokenProps,
   );
-  useEffect(() => {
-    setTimeout(() => setTeste(true), 3000);
-  }, []);
 
   function toggleDrawer() {
     setDrawer((oldState: any) => !oldState);
@@ -49,7 +48,7 @@ export const Application = () => {
 
   return (
     <div className={`app-layout ${drawer ? '' : 'hidden'}`}>
-      <div className="vt-container">
+      <div className="vt-container" ref={vtContainer}>
         <Stage
           className="app"
           width={stageWidth}

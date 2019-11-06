@@ -15,7 +15,7 @@ export const SignUpForm = ({ form }: any) => {
           label="Nome"
           onChange={onChange('name', (e:any)=>e.target.value)}
           onBlur={onBlur('name')}
-          prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
+          prefix={<Icon type="user" />}
           />
         <Input
           value={values.email}
@@ -24,24 +24,26 @@ export const SignUpForm = ({ form }: any) => {
           mask={emailMask}
           onChange={onChange('email', (e:any)=>e.target.value)}
           onBlur={onBlur('email')}
-          prefix={<Icon type="mail" style={{ color: 'rgba(0,0,0,.25)' }} />}
+          prefix={<Icon type="mail" />}
           />
         <Input
           label="Senha"
+          type={'password'}
           value={values.password}
           error={errors.password}
           onBlur={onBlur('password')}
-          prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
-          onChange={onChange('password', (e:any)=>e.target.value, true)}
+          prefix={<Icon type="lock" />}
+          onChange={onChange('password', (e:any)=> e.target.value, true)}
           
           />
         <Input
           label="Confirmar senha"
+          type={'password'}
           value={values.confirmPassword}
           error={errors.confirmPassword}
-          onChange={onChange('confirmPassword', (e:any)=>e.target.value, true)}
+          onChange={onChange('confirmPassword', (e:any)=> e.target.value, true)}
           onBlur={onBlur('confirmPassword')}
-          prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
+          prefix={<Icon type="lock" />}
         />
       </Form>
     </div>

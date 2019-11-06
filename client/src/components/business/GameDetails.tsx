@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from 'antd';
 
 export const GameDetails = ({ game, openGame }: any) => {
+  console.log(game);
   return (
     <div className="game-wrapper">
       <div className="game-header">
@@ -24,7 +25,16 @@ export const GameDetails = ({ game, openGame }: any) => {
         </span>
       </div>
       <div className="players">
-        <p>{game.players}</p>
+        {game.players.map((player: any) => (
+          <div key={player._id}>
+            <p>
+              {player.name}
+            </p>
+            <p>
+              {player.email}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );
