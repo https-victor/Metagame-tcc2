@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, {
+  useState, useEffect, useContext, useRef, 
+} from 'react';
 import { Stage } from '@inlet/react-pixi';
 import { Button } from 'antd';
 import { Archer } from '../old/Archer';
@@ -6,6 +8,8 @@ import { Grid } from '../old/Grid';
 import Icosahedron from '../../assets/svg/icosahedron.svg';
 import './style/application.css';
 import { GameContext } from '../../hooks/contexts/GameContext';
+import { useRequest } from '../../hooks/providers/useRequest';
+// import { AppContext } from '../../hooks/contexts';
 
 export type TokenProps = {
   x: number;
@@ -24,11 +28,13 @@ export const initialTokenProps = {
 };
 
 export const Application = () => {
+  // const { onRequest } = useContext<any>(AppContext);
   const { game } = useContext<any>(GameContext);
   const vtContainer = useRef<any>(undefined);
-  console.log(vtContainer)
+  console.log(vtContainer);
   const { closeGame } = game;
   console.log('Actual game:', game);
+
   const [teste, setTeste] = useState(false);
 
   const [drawer, setDrawer] = useState(false);
@@ -62,22 +68,21 @@ export const Application = () => {
             parentWidth={stageWidth}
             parentHeight={stageHeight}
           />
-          <Archer
-            {...tokenProps}
-            setTokenProps={setTokenProps}
-            parentWidth={stageWidth}
-            parentHeight={stageHeight}
-            cellSize={80}
-          />
-          {teste && (
-            <Archer
-              {...tokenProps2}
-              setTokenProps={setTokenProps2}
-              parentWidth={stageWidth}
-              parentHeight={stageHeight}
-              cellSize={80}
-            />
-          )}
+          {game.tokens
+            && game.tokens.map((token: any) => (
+              <Archer
+                key={token._id}
+                x={token.tokenSetup.x}
+                y={token.tokenSetup.y}
+                setTokenProps={setTokenProps}
+                parentWidth={stageWidth}
+                parentHeight={stageHeight}
+                alpha={token.tokenSetup.alpha}
+                width={80 * token.tokenSetup.scale}
+                height={80 * token.tokenSetup.scale}
+                cellSize={80 * token.tokenSetup.scale}
+              />
+            ))}
         </Stage>
       </div>
       <div className="app-footer">

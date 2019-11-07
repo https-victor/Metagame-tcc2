@@ -18,7 +18,6 @@ app.use('/api/games', require('./routes/games'));
 app.use('/api/auth', require('./routes/auth'));
 
 // Serve static assets in production
-console.log(process.env.NODE_ENV);
 if(process.env.NODE_ENV === 'production'){
     // Set static folder
 

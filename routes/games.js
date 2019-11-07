@@ -5,7 +5,7 @@ const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Game = require('../models/Game');
 const mongoose = require('mongoose');
-var ObjectId = require('mongoose').Types.ObjectId;
+var ObjectId = mongoose.Types.ObjectId;
 
 // @route   GET api/games/:filter?
 // @desc    Get all users games
@@ -67,7 +67,6 @@ router.get('/:filter?', auth, async (req, res) => {
               });
             const { players, notes, tokens, ...restGame } = game;
             const fullPlayers = await User.find({_id: { $in: players}, status: true}).select('_id name email');
-            console.log(fullPlayers);
             const fullNotes = await User.find({ _id: { $in: notes } });
             const fullTokens = await User.find({ _id: { $in: tokens } });
 
@@ -123,12 +122,12 @@ router.post(
     const { name, description } = req.body;
 
     try {
-      const {_id, name, email} = await User.findById(req.user.id).select('_id name email');
+      const {_id, name: username, email} = await User.findById(req.user.id).select('_id name email');
       const newGame = new Game({
         name,
         description,
         gmId: req.user.id,
-        players: [{ _id, name, email}]
+        players: [{ _id, name: username, email}]
       });
 
       const game = await newGame.save();
@@ -147,11 +146,13 @@ router.post(
 // @desc    Update game
 // @access  Private
 router.put('/:id', auth, async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, tokens, notes } = req.body;
 
   const gameFields = {};
   if (name) gameFields.name = name;
   if (description) gameFields.description = description;
+  if (tokens) gameFields.tokens = tokens;
+  if (notes) gameFields.notes = notes;
   gameFields.updatedAt = Date.now();
 
   try {
@@ -192,6 +193,137 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
+// @route   POST api/games/:id/tokens/
+// @desc    Add new token
+// @access  Private
+router.post('/:id/tokens', [auth,[
+      check('name', 'Name is required')
+        .not()
+        .isEmpty()
+    ]], async (req, res) => {
+  let game = await Game.findById(req.params.id);
+
+  if (!game)
+    res
+      .status(404)
+      .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
+
+  if (!game.status)
+    res.status(400).json({
+      errors: [
+        {
+          msg: 'The game is deactivated from the database',
+          type: 'database'
+        }
+      ]
+    });
+
+  // Check if requesting user has permision to the database content
+  if (game.gmId.toString() !== req.user.id) {
+    return res
+      .status(401)
+      .json({ errors: [{ msg: 'Not authorized', type: 'authorization' }] });
+  }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+    const { img, description, name } = req.body;
+
+    const tokenFields = {};
+    if (name) tokenFields.name = name;
+    if (description) tokenFields.description = description;
+    if (img) tokenFields.img = img;
+    tokenFields._id = new ObjectId();
+    tokenFields.createdAt = Date.now();
+    const {_id, name: username, email} = await User.findById(req.user.id).select('_id name email');
+    tokenFields.authorizedPlayers = [{ _id, name: username, email}];
+    
+    const updatedGame = await Game.findByIdAndUpdate(req.params.id,
+      { $set: {tokens: tokenFields} },
+      { new: true })
+    res.json(updatedGame);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ errors: [{ msg: 'Server Error', type: 'server' }] });
+  }
+});
+
+// @route   PUT api/games/:id/tokens/:tokenId
+// @desc    Edit token
+// @access  Private
+router.put('/:id/tokens/:tokenId', [auth,[
+      check('name', 'Name is required')
+        .not()
+        .isEmpty()
+    ]], async (req, res) => {
+  let game = await Game.findById(req.params.id);
+
+  if (!game)
+    res
+      .status(404)
+      .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
+
+  if (!game.status)
+    res.status(400).json({
+      errors: [
+        {
+          msg: 'The game is deactivated from the database',
+          type: 'database'
+        }
+      ]
+    });
+
+  // Check if requesting user has permision to the database content
+  if (game.gmId.toString() !== req.user.id) {
+    return res
+      .status(401)
+      .json({ errors: [{ msg: 'Not authorized', type: 'authorization' }] });
+  }
+  
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+    const { img, description, name, tokenSetup, type } = req.body;
+
+    const tokens = game.tokens;
+    let tokenFields = tokens.find((t)=>{
+      return  t._id == req.params.tokenId;
+  });
+    if (name) tokenFields.name = name;
+    if (description) tokenFields.description = description;
+    if (img) tokenFields.img = img;
+    if (type) tokenFields.type = type;
+    if (tokenSetup) {
+      if(tokenSetup.x) tokenFields.tokenSetup.x = tokenSetup.x;
+      if(tokenSetup.y) tokenFields.tokenSetup.y = tokenSetup.y;
+      if(tokenSetup.alpha) tokenFields.tokenSetup.alpha = tokenSetup.alpha;
+      if(tokenSetup.scale) tokenFields.tokenSetup.scale = tokenSetup.scale;
+      if(tokenSetup.hp) tokenFields.tokenSetup.hp = tokenSetup.hp;
+    }
+    tokenFields.updatedAt = Date.now();
+    
+    const updatedGame = await Game.findOneAndUpdate({
+      _id: req.params.id,
+      status: true,
+      tokens: { _id: req.params.tokenId}
+    },
+      { $set: {tokens: [...tokens.filter(t=>t_id!=req.params.tokenId),tokenFields]} },
+      { new: true })
+    res.json(updatedGame);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ errors: [{ msg: 'Server Error', type: 'server' }] });
+  }
+});
+
 // @route   POST api/games/:id/subscribe
 // @desc    Subscribe to a game
 // @access  Private
@@ -220,7 +352,6 @@ router.post('/:id/subscribe', auth, async (req, res) => {
         ]
       });
     }
-    console.log(req.user);
     const {_id, name, email} = await User.findById(req.user.id).select('_id name email')
     const newPlayers = [{ _id, name, email }, ...game.players];
     const newGames = [{ _id: game._id }, ...(req.user.games || [])];
