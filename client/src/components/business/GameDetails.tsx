@@ -2,7 +2,6 @@ import React from 'react';
 import { Button } from 'antd';
 
 export const GameDetails = ({ game, openGame }: any) => {
-  console.log(game);
   return (
     <div className="game-wrapper">
       <div className="game-header">

@@ -1,0 +1,135 @@
+
+// @route   PUT api/games/:id/tokens/:tokenId
+// @desc    Edit token
+// @access  Private
+router.put('/:id/tokens/:tokenId', [auth,[
+      check('name', 'Name is required')
+        .not()
+        .isEmpty()
+    ]], async (req, res) => {
+  let game = await Game.findById(req.params.id);
+
+  if (!game)
+    res
+      .status(404)
+      .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
+
+  if (!game.status)
+    res.status(400).json({
+      errors: [
+        {
+          msg: 'The game is deactivated from the database',
+          type: 'database'
+        }
+      ]
+    });
+
+  // Check if requesting user has permision to the database content
+  if (game.gmId.toString() !== req.user.id) {
+    return res
+      .status(401)
+      .json({ errors: [{ msg: 'Not authorized', type: 'authorization' }] });
+  }
+  
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+    const { img, description, name, tokenSetup, type } = req.body;
+
+    const tokens = game.tokens;
+    let tokenFields = tokens.find((t)=>{
+      return  t._id == req.params.tokenId;
+  });
+    if (name) tokenFields.name = name;
+    if (description) tokenFields.description = description;
+    if (img) tokenFields.img = img;
+    if (type) tokenFields.type = type;
+    if (tokenSetup) {
+      if(tokenSetup.x) tokenFields.tokenSetup.x = tokenSetup.x;
+      if(tokenSetup.y) tokenFields.tokenSetup.y = tokenSetup.y;
+      if(tokenSetup.alpha) tokenFields.tokenSetup.alpha = tokenSetup.alpha;
+      if(tokenSetup.scale) tokenFields.tokenSetup.scale = tokenSetup.scale;
+      if(tokenSetup.hp) tokenFields.tokenSetup.hp = tokenSetup.hp;
+    }
+    tokenFields.updatedAt = Date.now();
+    
+    const updatedGame = await Game.findOneAndUpdate({
+      _id: req.params.id,
+      status: true,
+      tokens: { _id: req.params.tokenId}
+    },
+      { $set: {tokens: [...tokens.filter(t=>t_id!=req.params.tokenId),tokenFields]} },
+      { new: true })
+    res.json(updatedGame);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ errors: [{ msg: 'Server Error', type: 'server' }] });
+  }
+});
+
+
+
+
+
+// @route   POST api/games/:id/tokens/
+// @desc    Add new token
+// @access  Private
+router.post('/:id/tokens', [auth,[
+      check('name', 'Name is required')
+        .not()
+        .isEmpty()
+    ]], async (req, res) => {
+  let game = await Game.findById(req.params.id);
+
+  if (!game)
+    res
+      .status(404)
+      .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
+
+  if (!game.status)
+    res.status(400).json({
+      errors: [
+        {
+          msg: 'The game is deactivated from the database',
+          type: 'database'
+        }
+      ]
+    });
+
+  // Check if requesting user has permision to the database content
+  if (game.gmId.toString() !== req.user.id) {
+    return res
+      .status(401)
+      .json({ errors: [{ msg: 'Not authorized', type: 'authorization' }] });
+  }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+    const { img, description, name } = req.body;
+
+    const tokenFields = {};
+    if (name) tokenFields.name = name;
+    if (description) tokenFields.description = description;
+    if (img) tokenFields.img = img;
+    tokenFields._id = new ObjectId();
+    tokenFields.createdAt = Date.now();
+    const {_id, name: username, email} = await User.findById(req.user.id).select('_id name email');
+    tokenFields.authorizedPlayers = [{ _id, name: username, email}];
+    
+    const updatedGame = await Game.findByIdAndUpdate(req.params.id,
+      { $set: {tokens: tokenFields} },
+      { new: true })
+    res.json(updatedGame);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ errors: [{ msg: 'Server Error', type: 'server' }] });
+  }
+});

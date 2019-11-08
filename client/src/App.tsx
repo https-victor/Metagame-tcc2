@@ -6,6 +6,7 @@ import { LandingPage, NotFound } from './components/pages';
 import { AppContext } from './hooks/contexts';
 import { useApp } from './components/pages/hooks/useApp';
 import { HomePage } from './components/pages/HomePage';
+import { Chat } from './components/pages/Chat';
 
 function App({ props }: any) {
   // const [isLogged, setIsLogged] = useState(false);

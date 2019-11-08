@@ -1,14 +1,26 @@
 import React, {
-  useState, useEffect, useContext, useRef, 
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
 } from 'react';
 import { Stage } from '@inlet/react-pixi';
 import { Button } from 'antd';
-import { Archer } from '../old/Archer';
+import io from 'socket.io-client';
 import { Grid } from '../old/Grid';
 import Icosahedron from '../../assets/svg/icosahedron.svg';
 import './style/application.css';
 import { GameContext } from '../../hooks/contexts/GameContext';
-import { useRequest } from '../../hooks/providers/useRequest';
+import { Token } from '../old/Token';
+
+const defaultHost = `${window.location.protocol}//${
+  window.location.hostname === 'localhost'
+    ? `${window.location.hostname}:4000`
+    : `${window.location.hostname}:4000`
+}`;
+const client = io('http://localhost:4000');
+// import { useRequest } from '../../hooks/providers/useRequest';
 // import { AppContext } from '../../hooks/contexts';
 
 export type TokenProps = {
@@ -31,25 +43,60 @@ export const Application = () => {
   // const { onRequest } = useContext<any>(AppContext);
   const { game } = useContext<any>(GameContext);
   const vtContainer = useRef<any>(undefined);
-  console.log(vtContainer);
   const { closeGame } = game;
   console.log('Actual game:', game);
 
-  const [teste, setTeste] = useState(false);
+  useEffect(() => {
+    const gameIdLS = localStorage.getItem('gameId');
+    if (gameIdLS) {
+      client.emit('connect_session', game._id || gameIdLS);
+      client.emit('create_token', {
+        gameId: game._id || gameIdLS,
+        name: 'teste',
+        description: 'testedesc',
+      });
+    }
+  }, []);
 
   const [drawer, setDrawer] = useState(false);
   const stageWidth = window.innerWidth;
   const stageHeight = window.innerHeight - 80;
 
-  const [tokenProps, setTokenProps] = useState<TokenProps>(
-    initialTokenProps as TokenProps,
-  );
-  const [tokenProps2, setTokenProps2] = useState<TokenProps>(
-    initialTokenProps as TokenProps,
-  );
-
   function toggleDrawer() {
     setDrawer((oldState: any) => !oldState);
+  }
+
+  const [tokens, setTokens] = useState<any>([]);
+
+  const onUpdateGame = useCallback(
+    (newGame: any) => {
+      game.setGame(newGame);
+    },
+    [game],
+  );
+
+  const onUpdateToken = useCallback(
+    (tokenList: any) => {
+      setTokens(tokenList);
+    },
+    [setTokens],
+  );
+
+  useEffect(() => {
+    client.on('token_update', onUpdateToken);
+    client.on('refresh_game', onUpdateGame);
+    return () => {
+      client.off('token_update', onUpdateToken);
+      client.off('refresh_game', onUpdateGame);
+    };
+  }, [onUpdateToken, onUpdateGame]);
+
+  function onTokenChange(_id: any, data: any) {
+    setTokens((prevTokens: any) => [
+      ...prevTokens.filter((t: any) => t._id !== _id),
+      { ...prevTokens.filter((t: any) => t._id === _id), ...data },
+    ]);
+    client.emit('update_token', { gameId: game._id, tokenId: _id, data });
   }
 
   return (
@@ -68,19 +115,14 @@ export const Application = () => {
             parentWidth={stageWidth}
             parentHeight={stageHeight}
           />
-          {game.tokens
-            && game.tokens.map((token: any) => (
-              <Archer
+          {tokens
+            && tokens.map((token: any) => (
+              <Token
                 key={token._id}
-                x={token.tokenSetup.x}
-                y={token.tokenSetup.y}
-                setTokenProps={setTokenProps}
+                onTokenChange={onTokenChange}
+                tokenProps={{ ...token.tokenSetup, _id: token._id }}
                 parentWidth={stageWidth}
                 parentHeight={stageHeight}
-                alpha={token.tokenSetup.alpha}
-                width={80 * token.tokenSetup.scale}
-                height={80 * token.tokenSetup.scale}
-                cellSize={80 * token.tokenSetup.scale}
               />
             ))}
         </Stage>
