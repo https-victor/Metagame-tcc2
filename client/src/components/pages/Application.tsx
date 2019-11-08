@@ -19,7 +19,7 @@ const defaultHost = `${window.location.protocol}//${
     ? `${window.location.hostname}:4000`
     : `${window.location.hostname}:4000`
 }`;
-const client = io('http://localhost:4000');
+const client = io(defaultHost);
 // import { useRequest } from '../../hooks/providers/useRequest';
 // import { AppContext } from '../../hooks/contexts';
 
@@ -44,7 +44,7 @@ export const Application = () => {
   const { game } = useContext<any>(GameContext);
   const vtContainer = useRef<any>(undefined);
   const { closeGame } = game;
-  console.log('Actual game:', game);
+  // console.log('Actual game:', game);
 
   useEffect(() => {
     const gameIdLS = localStorage.getItem('gameId');
@@ -71,6 +71,8 @@ export const Application = () => {
   const onUpdateGame = useCallback(
     (newGame: any) => {
       game.setGame(newGame);
+      console.log(newGame,newGame.tokens)
+      setTokens(newGame.tokens);
     },
     [game],
   );
@@ -91,12 +93,13 @@ export const Application = () => {
     };
   }, [onUpdateToken, onUpdateGame]);
 
-  function onTokenChange(_id: any, data: any) {
+  function onTokenChange(_id: any, data: any, opt: boolean = true) {
+    console.log(data);
     setTokens((prevTokens: any) => [
       ...prevTokens.filter((t: any) => t._id !== _id),
       { ...prevTokens.filter((t: any) => t._id === _id), ...data },
     ]);
-    client.emit('update_token', { gameId: game._id, tokenId: _id, data });
+    if (opt) client.emit('update_token', { gameId: game._id, tokenId: _id, data });
   }
 
   return (

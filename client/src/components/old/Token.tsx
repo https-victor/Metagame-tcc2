@@ -13,7 +13,7 @@ export const Token = ({
   const archer = useRef();
   const { scale, _id, ...restProps } = tokenProps;
   const cellSize = 80 * scale;
-
+  
   function snapToGrid(
     position: any,
     minLength: any,
@@ -37,14 +37,12 @@ export const Token = ({
     return snappedPosition;
   }
 
-  function onDragStart(archer: any) {
-    return (e: any) => {
-      setDragging(true);
-      onTokenChange(_id, {
-        ...tokenProps,
-        alpha: 0.5,
-      });
-    };
+  function onDragStart() {
+    setDragging(true);
+    onTokenChange(_id, {
+      ...tokenProps,
+      alpha: 0.5,
+    });
   }
 
   function onDragEnd(archer: any) {
@@ -53,8 +51,6 @@ export const Token = ({
       const snappedX = snapToGrid(x, 0, parentWidth, cellSize);
       const snappedY = snapToGrid(y, 0, parentHeight, cellSize);
       setDragging(false);
-      archer.x = snappedX;
-      archer.y = snappedY;
       onTokenChange(_id, {
         ...tokenProps,
         x: snappedX,
@@ -84,7 +80,7 @@ export const Token = ({
       ref={archer}
       interactive
       buttonMode
-      mousedown={onDragStart(archer.current)}
+      mousedown={onDragStart}
       mouseup={onDragEnd(archer.current)}
       mouseupoutside={onDragEnd(archer.current)}
       anchor={0.5}
