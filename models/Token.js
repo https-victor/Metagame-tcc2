@@ -27,8 +27,8 @@ const TokenSchema = mongoose.Schema({
     },
     gameId: 
     {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'game'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'game'
     },
     updatedAt: {
       type: Date,
@@ -47,15 +47,9 @@ const TokenSchema = mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'note',
     },
-    authorizedPlayers: [
-      {
-        _id:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'},
-        name: {
-          type: String,
-          required: true
-        },
+    authorizedPlayers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user'
     }
     ],
   });

@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { Stage } from '@inlet/react-pixi';
-import { Button } from 'antd';
+import { Button, Menu, Icon } from 'antd';
 import io from 'socket.io-client';
 import { Grid } from '../old/Grid';
 import Icosahedron from '../../assets/svg/icosahedron.svg';
@@ -20,7 +20,11 @@ import { Token } from '../old/Token';
 //     : `${window.location.hostname}:${process.env.PORT || 8080}`
 // }`;
 console.log(process.env.PORT, window.location.port);
-const client = io();
+const client = io(
+  window.location.hostname === 'localhost'
+    ? `${window.location.protocol}//${window.location.hostname}:5000`
+    : '',
+);
 // import { useRequest } from '../../hooks/providers/useRequest';
 // import { AppContext } from '../../hooks/contexts';
 
@@ -45,17 +49,27 @@ export const Application = () => {
   const { game } = useContext<any>(GameContext);
   const vtContainer = useRef<any>(undefined);
   const { closeGame } = game;
-  // console.log('Actual game:', game);
+  console.log('Actual game:', game);
 
   useEffect(() => {
     const gameIdLS = localStorage.getItem('gameId');
-    if (gameIdLS) {
-      client.emit('connect_session', game._id || gameIdLS);
-      client.emit('create_token', {
-        gameId: game._id || gameIdLS,
-        name: 'teste',
-        description: 'testedesc',
+    console.log('DidMount', gameIdLS);
+    if (game.name) {
+      if (gameIdLS !== game._id) {
+        localStorage.setItem('gameId', game._id);
+      }
+      game.onSync({
+        path: `games/${game._id}`,
+        method: 'GET',
       });
+      if (game._id) {
+        client.emit('connect_session', game._id || gameIdLS);
+        client.emit('create_token', {
+          gameId: game._id || gameIdLS,
+          name: 'teste',
+          description: 'testedesc',
+        });
+      }
     }
   }, []);
 
@@ -67,12 +81,14 @@ export const Application = () => {
     setDrawer((oldState: any) => !oldState);
   }
 
-  const [tokens, setTokens] = useState<any>([]);
+  const [tokens, setTokens] = useState<any>(game.tokens || []);
+
+  const [drawerMenu, setDrawerMenu] = useState<any>('chat');
 
   const onUpdateGame = useCallback(
     (newGame: any) => {
       game.setGame(newGame);
-      console.log(newGame,newGame.tokens)
+      console.log(newGame, newGame.tokens);
       setTokens(newGame.tokens);
     },
     [game],
@@ -85,23 +101,55 @@ export const Application = () => {
     [setTokens],
   );
 
+  const [diceRoll, setDiceRoll] = useState<any>('');
+
+  function rollDice() {
+    const newNumber = String(Math.floor(Math.random() * 20) + 1);
+    setDiceRoll(newNumber);
+    client.emit('dice_roll', { gameId: game._id, newNumber });
+  }
+
+  const onDiceRoll = useCallback(
+    (newDice: any) => {
+      setDiceRoll(newDice);
+    },
+    [diceRoll],
+  );
+
+  function handleDrawerMenuClick(e: any) {
+    setDrawerMenu(e.key);
+  }
+
   useEffect(() => {
     client.on('token_update', onUpdateToken);
     client.on('refresh_game', onUpdateGame);
+    client.on('dice_roll', onDiceRoll);
     return () => {
+      client.off('dice_roll', onDiceRoll);
       client.off('token_update', onUpdateToken);
       client.off('refresh_game', onUpdateGame);
     };
-  }, [onUpdateToken, onUpdateGame]);
+  }, [onUpdateToken, onUpdateGame, onDiceRoll]);
 
-  function onTokenChange(_id: any, data: any, opt: boolean = true) {
+  console.log(tokens);
+  function onTokenChange(
+    _id: any,
+    data: any,
+    opt: 'default' | 'state' | 'socket' = 'default',
+  ) {
     console.log(data);
-    setTokens((prevTokens: any) => [
-      ...prevTokens.filter((t: any) => t._id !== _id),
-      { ...prevTokens.filter((t: any) => t._id === _id), ...data },
-    ]);
-    if (opt) client.emit('update_token', { gameId: game._id, tokenId: _id, data });
+    if (opt === 'default' || opt === 'state') {
+      setTokens((prevTokens: any) => [
+        ...prevTokens.filter((t: any) => t._id !== _id),
+        { ...prevTokens.filter((t: any) => t._id === _id), ...data },
+      ]);
+    }
+    if (opt === 'default' || opt === 'socket') {
+      if (opt) client.emit('update_token', { gameId: game._id, tokenId: _id, data });
+    }
   }
+
+  console.log(diceRoll);
 
   return (
     <div className={`app-layout ${drawer ? '' : 'hidden'}`}>
@@ -132,12 +180,18 @@ export const Application = () => {
         </Stage>
       </div>
       <div className="app-footer">
-        <img
-          className="menu-btn"
-          width={100}
-          src={Icosahedron}
-          alt="Icosahedron"
-        />
+        <div className="dice" onClick={rollDice}>
+          <span className={`${diceRoll.length === 2 ? 'double' : ''}`}>
+            {diceRoll}
+          </span>
+          <img
+            className="menu-btn"
+            width={100}
+            src={Icosahedron}
+            alt="Icosahedron"
+          />
+        </div>
+
         <div className="drawer-btn-container">
           <Button
             type="primary"
@@ -153,7 +207,22 @@ export const Application = () => {
           />
         </div>
       </div>
-      <div className="app-drawer" />
+      <div className="app-drawer">
+        <div className="drawer-header">
+          <Menu
+            onClick={handleDrawerMenuClick}
+            selectedKeys={[drawerMenu]}
+            mode="horizontal"
+          >
+            <Menu.Item key="chat">
+              <Icon type="message" />
+            </Menu.Item>
+            <Menu.Item key="journal">
+              <Icon type="book" />
+            </Menu.Item>
+          </Menu>
+        </div>
+      </div>
     </div>
   );
 };

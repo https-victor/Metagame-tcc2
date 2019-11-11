@@ -6,95 +6,95 @@ const User = require('../models/User');
 const Game = require('../models/Game');
 const Note = require('../models/Note');
 const Token = require('../models/Token');
+const Chat = require('../models/Chat');
 const mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
 // @route   GET api/games/:filter?
-// @desc    Get all users games
+// @desc    Retorna todos os jogos do usuário baseado no parâmetro de filtro
 // @access  Private
-router.get('/:filter?', auth, async (req, res) => {
+router.get('/:id?', auth, async (req, res) => {
   try {
-    switch (req.params.filter) {
-      case 'my': {
-        const myGames = await Game.find({
-          gmId: req.user.id,
-          status: true
-        }).sort({
-          createdAt: -1
-        });
-        res.json([...myGames]);
-      }
-      case 'subscribed': {
-        const { games } = await User.findById(req.user.id, 'games');
-        const otherGames = await Game.find({
-          _id: { $in: games },
-          status: true
-        });
-        res.json([...otherGames]);
-      }
-      case 'all': {
-        const myGames = await Game.find({
-          gmId: req.user.id,
-          status: true
-        }).sort({
-          createdAt: -1
-        });
+    if (req.params.id) {
+      let game = await Game.findById(req.params.id);
 
-        const { games } = await User.findById(req.user.id, 'games');
-        const otherGames = await Game.find({
-          _id: { $in: games },
-          status: true
-        });
-        res.json([...myGames, ...otherGames]);
+          // Check game status
+      checkGame(game, res);
+
+      const { players, ...restGame } = game;
+
+      const fullPlayers = await User.find({
+        _id: { $in: players },
+        status: true
+      }).select('_id name');
+      const notes = await Note.find({ gameId: game._id,
+        status: true });
+      const tokens = await Token.find({
+        gameId: game._id,
+        status: true
+      });
+      const chatLog = await Chat.findOne({gameId: game._id});
+      res.json({
+        ...restGame._doc,
+        players: fullPlayers,
+        notes,
+        tokens,
+        chatLog
+      });
+    } else if (req.query.filter) {
+      switch (req.query.filter) {
+        case 'my': {
+          const myGames = await Game.find({
+            gmId: req.user.id,
+            status: true
+          }).sort({
+            createdAt: -1
+          });
+          res.json([...myGames]);
+          break;
+        }
+        case 'subscribed': {
+          const { games } = await User.findById(req.user.id, 'games');
+          const otherGames = await Game.find({
+            _id: { $in: games },
+            status: true
+          });
+          res.json([...otherGames]);
+          break;
+        }
+        case 'all': {
+          const myGames = await Game.find({
+            gmId: req.user.id,
+            status: true
+          }).sort({
+            createdAt: -1
+          });
+
+          const { games } = await User.findById(req.user.id, 'games');
+          const otherGames = await Game.find({
+            _id: { $in: games },
+            status: true
+          });
+          res.json([...myGames, ...otherGames]);
+          break;
+        }
+        default: {
+          throw new Error('Filter query invalid');
+        }
       }
-      default: {
-        if (req.params.filter) {
-          try {
-            let game = await Game.findById(req.params.filter);
-            if (!game)
-              res
-                .status(404)
-                .json({
-                  errors: [{ msg: 'Game not found', type: 'database' }]
-                });
-
-            if (!game.status)
-              res.status(400).json({
-                errors: [
-                  {
-                    msg: 'The game is deactivated from the database',
-                    type: 'database'
-                  }
-                ]
-              });
-            const { players, notes, tokens, ...restGame } = game;
-            const fullPlayers = await User.find({_id: { $in: players}, status: true}).select('_id name');
-            const fullNotes = await Note.find({ _id: { $in: notes }, status: true });
-            const fullTokens = await Token.find({ _id: { $in: tokens }, status: true });
-
-            res.json({ ...restGame._doc, players: fullPlayers, notes: fullNotes, tokens: fullTokens  });
-          } catch (err) {
-            console.error(err.message);
-            res
-              .status(500)
-              .json({ errors: [{ msg: 'Server Error', type: 'server' }] });
-          }
-        } else{
-        const myGames = await Game.find({
-          gmId: req.user.id,
-          status: true
-        }).sort({
-          createdAt: -1
-        });
-
-        const { games } = await User.findById(req.user.id, 'games');
-        const otherGames = await Game.find({
-          _id: { $in: games },
-          status: true
-        });
-        res.json({ myGames, otherGames });
-      }
-    }
+    } else {
+      const myGames = await Game.find({
+        gmId: req.user.id,
+        status: true
+      }).sort({
+        createdAt: -1
+      });
+      const { games } = await User.findById(req.user.id, 'games');
+      const otherGames = await Game.find({
+        _id: { $in: games },
+        status: true
+      });
+      res.json({ myGames, otherGames });
     }
   } catch (err) {
     console.error(err.message);
@@ -120,19 +120,20 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-
     const { name, description } = req.body;
-
     try {
-      const {_id, name: username} = await User.findById(req.user.id).select('_id name');
+      const { _id } = await User.findById(req.user.id).select('_id');
       const newGame = new Game({
         name,
         description,
         gmId: req.user.id,
-        players: [{ _id, name: username}]
+        players: [_id]
       });
-
       const game = await newGame.save();
+      const newChat = new Chat({
+        gameId: game._id
+      })
+      await newChat.save();
 
       res.json(game);
     } catch (err) {
@@ -143,6 +144,8 @@ router.post(
     }
   }
 );
+
+
 
 // @route   PUT api/games/:id
 // @desc    Update game
@@ -158,27 +161,11 @@ router.put('/:id', auth, async (req, res) => {
   try {
     let game = await Game.findById(req.params.id);
 
-    if (!game)
-      res
-        .status(404)
-        .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
+    // Check game status
+    checkGame(game, res);
 
-    if (!game.status)
-      res.status(400).json({
-        errors: [
-          {
-            msg: 'The game is deactivated from the database',
-            type: 'database'
-          }
-        ]
-      });
-
-    // Check if requesting user has permision to the database content
-    if (game.gmId.toString() !== req.user.id) {
-      return res
-        .status(401)
-        .json({ errors: [{ msg: 'Not authorized', type: 'authorization' }] });
-    }
+    // Check user permission
+    checkUserPermisison( game.gmId, req.user.id,res );
 
     game = await Game.findByIdAndUpdate(
       req.params.id,
@@ -193,28 +180,16 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-
-// @route   POST api/games/:id/subscribe
+// @route   POST api/games/subscribe/:id
 // @desc    Subscribe to a game
 // @access  Private
-router.post('/:id/subscribe', auth, async (req, res) => {
+router.post('/subscribe/:id', auth, async (req, res) => {
   try {
     let game = await Game.findById(req.params.id);
 
-    if (!game)
-      res
-        .status(404)
-        .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
+    // Check game status
+    checkGame(game, res);
 
-    if (!game.status)
-      res.status(400).json({
-        errors: [
-          {
-            msg: 'The game is deactivated from the database',
-            type: 'database'
-          }
-        ]
-      });
     if (!(game.players.filter(player => player._id == req.user.id) == false)) {
       return res.status(404).json({
         errors: [
@@ -222,9 +197,9 @@ router.post('/:id/subscribe', auth, async (req, res) => {
         ]
       });
     }
-    const {_id, name} = await User.findById(req.user.id).select('_id name')
-    const newPlayers = [{ _id, name }, ...game.players];
+    const { _id } = await User.findById(req.user.id).select('_id');
     const newGames = [{ _id: game._id }, ...(req.user.games || [])];
+    const newPlayers = [_id , ...game.players];
 
     await User.findByIdAndUpdate(
       req.user.id,
@@ -245,27 +220,16 @@ router.post('/:id/subscribe', auth, async (req, res) => {
   }
 });
 
-// @route   POST api/games/:id/unsubscribe
+// @route   POST api/games/unsubscribe/:id
 // @desc    Unsubscribe to a game
 // @access  Private
-router.post('/:id/unsubscribe', auth, async (req, res) => {
+router.post('/unsubscribe/:id', auth, async (req, res) => {
   try {
     let game = await Game.findById(req.params.id);
 
-    if (!game)
-      res
-        .status(404)
-        .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
+    // Check game status
+    checkGame(game, res);
 
-    if (!game.status)
-      res.status(400).json({
-        errors: [
-          {
-            msg: 'The game is deactivated from the database',
-            type: 'database'
-          }
-        ]
-      });
     if (game.players.filter(playerId => playerId._id == req.user.id) == false) {
       return res.status(404).json({
         errors: [
@@ -276,7 +240,9 @@ router.post('/:id/unsubscribe', auth, async (req, res) => {
         ]
       });
     }
-    const newPlayers = game.players.filter(playerId => playerId._id != req.user.id);
+    const newPlayers = game.players.filter(
+      playerId => playerId._id != req.user.id
+    );
 
     game = await Game.findByIdAndUpdate(
       req.params.id,
@@ -290,74 +256,6 @@ router.post('/:id/unsubscribe', auth, async (req, res) => {
     res.status(500).json({ errors: [{ msg: 'Server Error', type: 'server' }] });
   }
 });
-
-// @route   POST api/games/:id/unsubscribe/user
-// @desc    Unsubscribe to a game
-// @access  Private
-router.post(
-  '/:id/unsubscribe/user',
-  [
-    auth,
-    [
-      check('user', 'User is required to unsubscription')
-        .not()
-        .isEmpty()
-    ]
-  ],
-  async (req, res) => {
-    try {
-      let game = await Game.findById(req.params.id);
-
-      if (!game)
-        res
-          .status(404)
-          .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
-
-      if (!game.status)
-        res.status(400).json({
-          errors: [
-            {
-              msg: 'The game is deactivated from the database',
-              type: 'database'
-            }
-          ]
-        });
-      let isUserAdmin = await User.findOne({ role: 2, _id: req.user.id });
-      if (game.gmId != req.user.id && !Boolean(isUserAdmin)) {
-        return res.status(404).json({
-          errors: [
-            {
-              msg:
-                'You are not authorized to unsubscribe this user to this game',
-              type: 'database'
-            }
-          ]
-        });
-      }
-      if (!req.body.user) {
-        return res.status(401).json({
-          errors: [{ msg: 'User is required to unsubscription', type: 'user' }]
-        });
-      }
-      const newPlayers = game.players.filter(
-        playerId => playerId._id != req.body.user
-      );
-
-      game = await Game.findByIdAndUpdate(
-        req.params.id,
-        { $set: { players: newPlayers } },
-        { new: true }
-      );
-
-      res.json(game);
-    } catch (err) {
-      console.error(err);
-      res
-        .status(500)
-        .json({ errors: [{ msg: 'Server Error', type: 'server' }] });
-    }
-  }
-);
 
 // @route   DELETE api/games/:id
 // @desc    Delete game
@@ -381,19 +279,14 @@ router.delete('/:id', auth, async (req, res) => {
         ]
       });
 
-    // Check if requesting user has permision to the database content
-    if (game.gmId.toString() !== req.user.id) {
-      return res
-        .status(401)
-        .json({ errors: [{ msg: 'Not authorized', type: 'authorization' }] });
-    }
+    //Check user permission
+    checkUserPermisison(game.gmId,req.user.id,res);
 
     await Game.findByIdAndUpdate(
       req.params.id,
       { $set: { status: false } },
       { new: true }
     );
-    // await Game.findByIdAndRemove(req.params.id);
 
     res.json({ reports: [{ msg: 'Game deleted', type: 'crud' }] });
   } catch (err) {
@@ -401,5 +294,30 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).json({ errors: [{ msg: 'Server Error', type: 'server' }] });
   }
 });
+
+function checkGame(game, res) {
+  if (!game)
+      return res
+        .status(404)
+        .json({ errors: [{ msg: 'Game not found', type: 'database' }] });
+
+  if (!game.status)
+  return res.status(400).json({
+    errors: [
+      {
+        msg: 'The game is deactivated from the database',
+        type: 'database'
+      }
+    ]
+  });
+}
+
+function checkUserPermisison(gmId, userId, res){
+  if (gmId.toString() !== userId) {
+    return res
+      .status(401)
+      .json({ errors: [{ msg: 'Not authorized', type: 'authorization' }] });
+  }
+}
 
 module.exports = router;

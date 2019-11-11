@@ -39,13 +39,8 @@ const NoteSchema = mongoose.Schema({
     },
     authorizedPlayers: [
         {
-        _id:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'},
-        name: {
-            type: String,
-            required: true
-        },
+        ref: 'user'
     }
     ],
 });

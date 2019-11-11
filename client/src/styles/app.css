@@ -172,21 +172,6 @@ p, h1{
   grid-area: app;
 }
 
-.app-drawer{
-  background-color: var(--SECONDARY);
-  filter: brightness(80%);
-  z-index: 7;
-  width: 400px;
-  height: 100%;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-
-.app-layout.hidden .app-drawer{
-  display: none;
-}
-
 .app-footer{
   grid-area: footer;
   z-index: 8;
@@ -206,6 +191,27 @@ p, h1{
   position: absolute;
   bottom: 20px;
   left: calc( (( 100% - 400px ) / 2 ) - 50px);
+}
+
+.dice span{
+  color: white;
+  font-size: 1.5rem;
+  position: absolute;
+  z-index: 9;
+  bottom: 62px;
+  left: calc( (( 100% - 400px ) / 2 ) - 8px);
+}
+
+.dice span.double{
+  left: calc( (( 100% - 400px ) / 2 ) - 14px);
+}
+
+.app-layout.hidden span{
+  left: calc( 50% - 8px);
+}
+
+.app-layout.hidden span.double{
+  left: calc( 50% - 14px);
 }
 
 .app-layout.hidden .menu-btn{

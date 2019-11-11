@@ -44,3 +44,14 @@ exports.onCreateToken = async function(io, gameId, name, description) {
   await Game.findByIdAndUpdate(gameId, { tokens: newList });
   io.to(gameId).emit('token_update', newList);
 };
+
+/**
+ * Função executada ao modificar o setup do token
+ * @param {*} client Socket do client
+ * @param {*} gameId Id da sessão de jogo
+ */
+exports.onDiceRoll = async function(io, gameId, newNumber
+    ) {
+  io.to(gameId).emit('dice_roll', newNumber
+  );
+};

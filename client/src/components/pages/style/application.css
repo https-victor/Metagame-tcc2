@@ -8,11 +8,19 @@
 }
 
 .app-drawer{
+    background-color: white;
+    z-index: 7;
     width: 30%;
     height: calc( 100% - 80px);
-    background-color: #ef925e;
-    filter: brightness(80%);
-}
+    border-left: 1px solid #e3e3e3;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  
+  .app-layout.hidden .app-drawer{
+    display: none;
+  }
 
 .app-footer{
     position: absolute;

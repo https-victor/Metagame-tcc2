@@ -6,24 +6,26 @@ import { AppContext } from '../../hooks/contexts';
 import { Library } from './Library';
 import { GameContext } from '../../hooks/contexts/GameContext';
 import { Application } from './Application';
+import { useRequest } from '../../hooks/providers/useRequest';
 
 export const HomePage = () => {
   const { auth, history, onRequest } = useContext<any>(AppContext);
 
-  const [game, setGame] = useState({});
+  const game = useRequest({});
+  console.log(game);
 
-  const isOpen = history.location.pathname === '/game';
+  const isOpen = history.location.pathname === '/app';
 
-  function openGame(game: any) {
+  function openGame(g: any) {
     return () => {
-      setGame(game);
-      localStorage.setItem('gameId', JSON.stringify(game._id));
+      game.onSync({ path: `games/${g._id}`, method: 'GET' });
+      localStorage.setItem('gameId', g._id);
       history.push('/app');
     };
   }
 
   function closeGame() {
-    setGame({});
+    game.onSetData({});
     localStorage.removeItem('gameId');
     history.push('/biblioteca');
   }
@@ -31,14 +33,17 @@ export const HomePage = () => {
   useEffect(() => {
     async function getGame() {
       const gameId = localStorage.getItem('gameId');
+      console.log(gameId);
       if (gameId) {
         try {
           const lastGame = await onRequest({
-            path: `games/${JSON.parse(gameId)}`,
+            path: `games/${gameId}`,
             method: 'GET',
           });
+          console.log(lastGame);
           if (isOpen) {
-            setGame(lastGame);
+            console.log(isOpen);
+            game.onSetData(lastGame);
           }
         } catch (err) {
           console.error(err);
@@ -54,11 +59,12 @@ export const HomePage = () => {
     <GameContext.Provider
       value={{
         game: {
-          ...game,
+          ...game.data,
           isOpen,
           openGame,
           closeGame,
-          setGame,
+          setGame: game.onSetData,
+          onSync: game.onSync,
         },
       }}
     >
@@ -70,7 +76,9 @@ export const HomePage = () => {
               <p>Metagame</p>
             </div>
             <div className="menu-container">
-              <Link to="/biblioteca/recentes" style={{color:'white'}}>Biblioteca</Link>
+              <Link to="/biblioteca/recentes" style={{ color: 'white' }}>
+                Biblioteca
+              </Link>
             </div>
             <div className="actions-container">
               <Link to="/">
