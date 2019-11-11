@@ -14,13 +14,13 @@ import './style/application.css';
 import { GameContext } from '../../hooks/contexts/GameContext';
 import { Token } from '../old/Token';
 
-const defaultHost = `${window.location.protocol}//${
-  window.location.hostname === 'localhost'
-    ? `${window.location.hostname}:5000`
-    : `${window.location.hostname}:${process.env.PORT || 5000}`
-}`;
+// const defaultHost = `${window.location.protocol}//${
+//   window.location.hostname === 'localhost'
+//     ? `${window.location.hostname}:5000`
+//     : `${window.location.hostname}:${process.env.PORT || 8080}`
+// }`;
 console.log(process.env.PORT, window.location.port);
-const client = io(defaultHost);
+const client = io();
 // import { useRequest } from '../../hooks/providers/useRequest';
 // import { AppContext } from '../../hooks/contexts';
 
