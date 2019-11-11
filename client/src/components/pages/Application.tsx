@@ -14,7 +14,7 @@ import './style/application.css';
 import { GameContext } from '../../hooks/contexts/GameContext';
 import { Token } from '../old/Token';
 
-const defaultHost = `${window.location.protocol}//${window.location.hostname}:4000`;
+const defaultHost = `${window.location.protocol}//${window.location.hostname}:8080`;
 console.log(defaultHost);
 const client = io(defaultHost);
 // import { useRequest } from '../../hooks/providers/useRequest';

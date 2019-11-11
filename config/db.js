@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const config = require('config');
 const mongoURI = config.get('mongoURI');
-const io = require('socket.io').listen(4000).sockets;
+const io = require('socket.io').listen(8080).sockets;
 const socket = require('./ws');
 
 const connectDB = async () => {
