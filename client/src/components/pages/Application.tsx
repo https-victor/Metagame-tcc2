@@ -16,10 +16,10 @@ import { Token } from '../old/Token';
 
 const defaultHost = `${window.location.protocol}//${
   window.location.hostname === 'localhost'
-    ? `${window.location.hostname}:3000`
-    : `${window.location.hostname}:3000`
+    ? `${window.location.hostname}:4000`
+    : `${window.location.hostname}:${process.env.PORT || 4000}`
 }`;
-console.log(process.env.PORT, window.location.port)
+console.log(process.env.PORT, window.location.port);
 const client = io(defaultHost);
 // import { useRequest } from '../../hooks/providers/useRequest';
 // import { AppContext } from '../../hooks/contexts';
