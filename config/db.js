@@ -1,8 +1,13 @@
 const mongoose = require('mongoose');
 const config = require('config');
 const mongoURI = config.get('mongoURI');
-const io = require('socket.io').listen(8080).sockets;
 const socket = require('./ws');
+
+const express = require('express'),
+    app = express(),
+    server = require('http').createServer(app),
+    io = require('socket.io').listen(server).sockets; 
+server.listen(process.env.PORT || 3000);
 
 const connectDB = async () => {
     try{
