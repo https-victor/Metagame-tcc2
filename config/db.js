@@ -1,13 +1,8 @@
 const mongoose = require('mongoose');
 const config = require('config');
 const mongoURI = config.get('mongoURI');
+const io = require('socket.io').listen(process.env.PORT || 4000).sockets
 const socket = require('./ws');
-console.log('db.js',process.env.PORT)
-const express = require('express'),
-    app = express(),
-    server = require('http').createServer(app),
-    io = require('socket.io').listen(server).sockets; 
-server.listen(process.env.PORT || 5000);
 
 const connectDB = async () => {
     try{
