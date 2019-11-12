@@ -6,10 +6,10 @@ const ChatSchema = mongoose.Schema({
         _id:{
             type: mongoose.Schema.Types.ObjectId
         },
-        sender:{
+        sender:{_id:{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'user'
-        },
+        }, name: String},
         msg: {
             type: String,
             required: true

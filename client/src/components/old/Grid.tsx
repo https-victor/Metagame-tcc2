@@ -8,6 +8,7 @@ export const Grid = ({
   const numberOfCols = Math.floor(parentWidth / cellSize);
   const numberOfRows = Math.floor(parentHeight / cellSize);
   function drawGrid(g: any) {
+    g.clear();
     g.lineStyle(1, 0x000000, 0.5);
     let currentWidth = 0;
     let currentHeight = 0;

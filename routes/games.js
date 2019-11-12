@@ -8,7 +8,7 @@ const Note = require('../models/Note');
 const Token = require('../models/Token');
 const Chat = require('../models/Chat');
 const mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+
 
 // @route   GET api/games/:filter?
 // @desc    Retorna todos os jogos do usuário baseado no parâmetro de filtro

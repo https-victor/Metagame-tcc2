@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 const Game = require('../models/Game');
+const User = require('../models/User');
 const Token = require('../models/Token');
+const Chat = require('../models/Chat');
+const jwt = require('jsonwebtoken');
+const config = require('config');
+var ObjectId = mongoose.Types.ObjectId;
 
 /**
  * Função executada ao entrar um novo cliente na sala
@@ -50,8 +55,43 @@ exports.onCreateToken = async function(io, gameId, name, description) {
  * @param {*} client Socket do client
  * @param {*} gameId Id da sessão de jogo
  */
-exports.onDiceRoll = async function(io, gameId, newNumber
+exports.onDiceRoll = async function(io, gameId,token, newNumber
     ) {
-  io.to(gameId).emit('dice_roll', newNumber
+        const {user} = jwt.verify(token,config.get('jwtSecret'));
+        const oldChat = await Chat.findOne({gameId:gameId});
+        const userName = await User.findById(user.id,'name');
+        const msgs = await Chat.findOneAndUpdate({gameId},{ $set: {log: [{
+            _id: ObjectId(),
+            sender: {_id:user.id, name:userName.name},
+            msg: `${userName.name} rolou o dado e tirou ${newNumber}!`,
+            date: Date.now()
+        }, ...oldChat.log ]} },{ new: true});
+        io.to(gameId).emit('receive_msg', msgs.log);
+        io.to(gameId).emit('dice_roll', newNumber);
+};
+
+/**
+ * Função executada ao modificar o setup do token
+ * @param {*} client Socket do client
+ * @param {*} gameId Id da sessão de jogo
+ */
+exports.onNewMsg = async function(io, gameId, token,
+    msg
+    ) {
+        const {user} = jwt.verify(token,config.get('jwtSecret'));
+        console.log(user)
+        const oldChat = await Chat.findOne({gameId:gameId});
+        console.log(oldChat)
+        const userName = await User.findById(user.id,'name');
+        const msgs = await Chat.findOneAndUpdate({gameId},{ $set: {log: [{
+            _id: ObjectId(),
+            sender: {_id:user.id, name:userName.name},
+            msg,
+            date: Date.now()
+        },...oldChat.log ]} },
+            { new: true})
+            console.log(msgs.log)
+
+  io.to(gameId).emit('receive_msg', msgs.log
   );
 };

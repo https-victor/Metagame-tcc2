@@ -16,8 +16,13 @@ module.exports = function (io) {
             GameSession.onCreateToken(io, gameId, name, description);
         })
 
-        client.on('dice_roll', function({gameId, newNumber}){
-            GameSession.onDiceRoll(io, gameId, newNumber);
+        client.on('dice_roll', function({gameId,token, newNumber}){
+            GameSession.onDiceRoll(io, gameId,token, newNumber);
+        })
+
+        client.on('send_msg', function({gameId, token, msg}){
+            GameSession.onNewMsg(io, gameId, token,
+                msg);
         })
         console.log('Socket connected');
     }
