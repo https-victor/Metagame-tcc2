@@ -4,8 +4,8 @@ const GameSession = require('../controls/GameSession.js');
 module.exports = function (io) {    
 
     return function (client) {
-        client.on('connect_session', function(gameId){
-            GameSession.onNewClient(io,client, gameId);
+        client.on('connect_session', function({gameId,token}){
+            GameSession.onNewClient(io,client, gameId,token);
         })
 
         client.on('update_token', function( {gameId, tokenId, data}){

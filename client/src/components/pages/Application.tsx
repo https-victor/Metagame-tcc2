@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { Stage } from '@inlet/react-pixi';
 import {
-  Button, Menu, Icon, Input, Badge, 
+  Button, Menu, Icon, Badge, 
 } from 'antd';
 import io from 'socket.io-client';
 import moment from 'moment';
@@ -17,13 +17,14 @@ import Icosahedron from '../../assets/svg/icosahedron.svg';
 import './style/application.css';
 import { GameContext } from '../../hooks/contexts/GameContext';
 import { Token } from '../old/Token';
+import { Input } from '../generics';
+import { AppContext } from '../../hooks/contexts';
 
 // const defaultHost = `${window.location.protocol}//${
 //   window.location.hostname === 'localhost'
 //     ? `${window.location.hostname}:5000`
 //     : `${window.location.hostname}:${process.env.PORT || 8080}`
 // }`;
-console.log(process.env.PORT, window.location.port);
 const client = io(
   window.location.hostname === 'localhost'
     ? `${window.location.protocol}//${window.location.hostname}:5000`
@@ -49,60 +50,77 @@ export const initialTokenProps = {
 };
 
 export const Application = () => {
-  // const { onRequest } = useContext<any>(AppContext);
+  const { history } = useContext<any>(AppContext);
   const { game } = useContext<any>(GameContext);
   const vtContainer = useRef<any>(undefined);
-  const { closeGame } = game;
-  console.log('Actual game:', game);
 
-  const [tokens, setTokens] = useState<any>(game.tokens || []);
-  const [msgs, setMsgs] = useState([]);
+  const [actualGame, setActualGame] = useState<any>({});
+  const [gameLoading, setGameLoading] = useState(true);
+  console.log('Actual game:', actualGame);
+
+  function closeGame() {
+    setActualGame({});
+    localStorage.removeItem('gameId');
+    history.push('/biblioteca');
+  }
+  const [drawerMenu, setDrawerMenu] = useState<any>('loading');
+
+  useEffect(() => {
+    if (!gameLoading) {
+      setDrawerMenu('chat');
+    }
+  }, [gameLoading]);
 
   useEffect(() => {
     async function getGame() {
       const gameIdLS = localStorage.getItem('gameId');
-      console.log('DidMount', gameIdLS, game);
+      const token = localStorage.getItem('jwt');
       if (game.data) {
         if (gameIdLS !== game.data._id) {
           localStorage.setItem('gameId', game.data._id);
         }
-        const actualGame = await game.onSync({
+        const newGame = await game.onSync({
           path: `games/${game.data._id}`,
           method: 'GET',
         });
-
-        setTokens(actualGame.tokens);
-        setMsgs(actualGame.chatlog.log);
-        if (actualGame._id) {
-          client.emit('connect_session', actualGame._id || gameIdLS);
+        setActualGame(newGame);
+        if (newGame._id) {
+          client.emit('connect_session', {
+            gameId: newGame._id || gameIdLS,
+            token,
+          });
           client.emit('create_token', {
-            gameId: actualGame._id || gameIdLS,
+            gameId: newGame._id || gameIdLS,
+            name: 'teste',
+            description: 'testedesc',
+          });
+        }
+      } else if (gameIdLS) {
+        const newGame = await game.onSync({
+          path: `games/${gameIdLS}`,
+          method: 'GET',
+        });
+        setActualGame(newGame);
+        if (newGame._id) {
+          client.emit('connect_session', {
+            gameId: newGame._id || gameIdLS,
+            token,
+          });
+          client.emit('create_token', {
+            gameId: newGame._id || gameIdLS,
             name: 'teste',
             description: 'testedesc',
           });
         }
       } else {
-        const actualGame = await game.onSync({
-          path: `games/${gameIdLS}`,
-          method: 'GET',
-        });
-        console.log(actualGame.tokens, actualGame.chatLog);
-        setTokens(actualGame.tokens);
-        setMsgs(actualGame.chatLog.log);
-        if (actualGame._id) {
-          client.emit('connect_session', actualGame._id || gameIdLS);
-          client.emit('create_token', {
-            gameId: actualGame._id || gameIdLS,
-            name: 'teste',
-            description: 'testedesc',
-          });
-        }
+        closeGame();
       }
+      setGameLoading(false);
     }
     getGame();
   }, []);
 
-  const [drawer, setDrawer] = useState(false);
+  const [drawer, setDrawer] = useState(true);
   const stageWidth = window.innerWidth;
   const stageHeight = window.innerHeight - 80;
 
@@ -110,22 +128,21 @@ export const Application = () => {
     setDrawer((oldState: any) => !oldState);
   }
 
-  const [drawerMenu, setDrawerMenu] = useState<any>('chat');
-
-  const onUpdateGame = useCallback(
-    (newGame: any) => {
-      game.setGame(newGame);
-      console.log(newGame, newGame.tokens);
-      setTokens(newGame.tokens);
-    },
-    [game],
-  );
+  // const onUpdateGame = useCallback(
+  //   (newGame: any) => {
+  //     setActualGame(newGame);
+  //   },
+  //   [game, setActualGame],
+  // );
 
   const onUpdateToken = useCallback(
     (tokenList: any) => {
-      setTokens(tokenList);
+      setActualGame((prevState: any) => ({
+        ...prevState,
+        tokens: tokenList,
+      }));
     },
-    [setTokens],
+    [setActualGame],
   );
 
   const [diceRoll, setDiceRoll] = useState<any>('');
@@ -135,7 +152,7 @@ export const Application = () => {
     setDiceRoll(newNumber);
 
     client.emit('dice_roll', {
-      gameId: game._id,
+      gameId: actualGame._id,
       token: localStorage.getItem('jwt'),
       newNumber,
     });
@@ -157,56 +174,81 @@ export const Application = () => {
   }, [drawerMenu]);
 
   const onReceiveMsg = useCallback(
-    (newMsgs: any) => {
+    (chatLog: any) => {
       if (drawerMenu !== 'chat') {
-        console.log('novo counter', drawerMenu, drawerMenu !== 'chat');
         setMsgCounter((prevNumber: any) => prevNumber + 1);
       }
-      setMsgs(newMsgs);
+      setActualGame((prevState: any) => ({ ...prevState, chatLog }));
     },
-    [msgs, drawerMenu],
+    [setActualGame, drawerMenu],
   );
 
-  console.log(drawerMenu)
   function handleDrawerMenuClick(e: any) {
     setDrawerMenu(e.key);
   }
 
   useEffect(() => {
     client.on('token_update', onUpdateToken);
-    client.on('refresh_game', onUpdateGame);
+    // client.on('refresh_game', onUpdateGame);
     client.on('dice_roll', onDiceRoll);
     client.on('receive_msg', onReceiveMsg);
     return () => {
       client.off('dice_roll', onDiceRoll);
       client.off('token_update', onUpdateToken);
-      client.off('refresh_game', onUpdateGame);
+      // client.off('refresh_game', onUpdateGame);
       client.off('receive_msg', onReceiveMsg);
     };
-  }, [onUpdateToken, onUpdateGame, onDiceRoll, onReceiveMsg]);
+  }, [onUpdateToken, onDiceRoll, onReceiveMsg]);
+
   function onTokenChange(
     _id: any,
+    idx: any,
     data: any,
     opt: 'default' | 'state' | 'socket' = 'default',
   ) {
-    console.log(data);
     if (opt === 'default' || opt === 'state') {
-      setTokens((prevTokens: any) => [
-        ...prevTokens.filter((t: any) => t._id !== _id),
-        { ...prevTokens.filter((t: any) => t._id === _id), ...data },
-      ]);
+      setActualGame(({ tokens, ...prevState }: any) => ({
+        ...prevState,
+        tokens: [
+          ...tokens.slice(0, idx),
+          {
+            ...tokens[idx],
+            tokenSetup: { ...tokens[idx].tokenSetup, ...data },
+          },
+          ...tokens.slice(idx + 1),
+        ],
+      }));
     }
     if (opt === 'default' || opt === 'socket') {
-      if (opt) client.emit('update_token', { gameId: game._id, tokenId: _id, data });
+      if (opt) {
+        client.emit('update_token', {
+          gameId: actualGame._id,
+          tokenId: _id,
+          data,
+        }); 
+      }
     }
   }
 
   const [msg, setMsg] = useState('');
 
+  const [msgError, setMsgError] = useState('');
+
   function sendMsg() {
-    const jwt = localStorage.getItem('jwt');
-    client.emit('send_msg', { gameId: game._id, token: jwt, msg });
-    setMsg('');
+    if (msg !== '') {
+      if (msg === '/r 1d20') {
+        rollDice();
+      } else {
+        client.emit('send_msg', {
+          gameId: actualGame._id,
+          token: localStorage.getItem('jwt'),
+          msg,
+        });
+        setMsg('');
+      }
+    } else {
+      setMsgError('A mensagem a ser enviada não pode ficar vazia.');
+    }
   }
 
   let drawerBody;
@@ -215,34 +257,27 @@ export const Application = () => {
       drawerBody = (
         <Fragment>
           <div className="chat">
-            {msgs.length !== 0
-              ? msgs.map((m: any) => (
-                <div className="msg">
-                  <span className="msg-text">{m.msg}</span>
-                  <span className="msg-sender">{m.sender.name}</span>
-                  <span className="msg-date">
-                    {moment(m.date).format('HH:mm')}
-                  </span>
-                </div>
-              ))
-              : game.chatLog
-                ? game.chatLog.log
-                  ? game.chatLog.log.map((m: any) => (
-                    <div className="msg">
-                      <span className="msg-text">{m.msg}</span>
-                      <span className="msg-sender">{m.sender.name}</span>
-                      <span className="msg-date">
-                        {moment(m.date).format('HH:mm')}
-                      </span>
-                    </div>
-                  ))
-                  : undefined
-                : undefined}
+            {actualGame.chatLog
+              ? actualGame.chatLog.log
+                ? actualGame.chatLog.log.map((m: any) => (
+                  <div className="msg">
+                    <span className="msg-text">{m.msg}</span>
+                    <span className="msg-sender">{m.sender.name}</span>
+                    <span className="msg-date">
+                      {moment(m.date).format('HH:mm')}
+                    </span>
+                  </div>
+                ))
+                : undefined
+              : undefined}
           </div>
           <div className="chat-text">
-            <Input.TextArea
+            <Input
+              type="textarea"
+              error={msgError}
               rows={3}
               value={msg}
+              onPressEnter={sendMsg}
               onChange={(e: any) => setMsg(e.target.value)}
             />
             <Button type="primary" onClick={sendMsg}>
@@ -256,36 +291,39 @@ export const Application = () => {
       drawerBody = <Fragment>Diário</Fragment>;
       break;
     default:
-      drawerBody = undefined;
+      drawerBody = 'Loading';
   }
-  console.log(msgCounter)
   return (
     <div className={`app-layout ${drawer ? '' : 'hidden'}`}>
       <div className="vt-container" ref={vtContainer}>
-        <Stage
-          className="app"
-          width={stageWidth}
-          height={stageHeight}
-          options={{ antialias: true, backgroundColor: 0xffffff}}
-        >
-          <Grid
-            x={0}
-            y={0}
-            cellSize={80}
-            parentWidth={stageWidth}
-            parentHeight={stageHeight}
-          />
-          {tokens
-            && tokens.map((token: any) => (
-              <Token
-                key={token._id}
-                onTokenChange={onTokenChange}
-                tokenProps={{ ...token.tokenSetup, _id: token._id }}
-                parentWidth={stageWidth}
-                parentHeight={stageHeight}
-              />
-            ))}
-        </Stage>
+        {gameLoading ? (
+          'Loading'
+        ) : (
+          <Stage
+            className="app"
+            width={stageWidth}
+            height={stageHeight}
+            options={{ antialias: true, backgroundColor: 0xffffff }}
+          >
+            <Grid
+              x={0}
+              y={0}
+              cellSize={80}
+              parentWidth={stageWidth}
+              parentHeight={stageHeight}
+            />
+            {actualGame.tokens
+              && actualGame.tokens.map((token: any, idx: any) => (
+                <Token
+                  key={token._id}
+                  onTokenChange={onTokenChange}
+                  tokenProps={{ ...token.tokenSetup, _id: token._id, idx }}
+                  parentWidth={stageWidth}
+                  parentHeight={stageHeight}
+                />
+              ))}
+          </Stage>
+        )}
       </div>
       <div className="app-footer">
         <div className="dice" onClick={rollDice}>

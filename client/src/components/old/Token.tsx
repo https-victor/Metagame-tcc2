@@ -11,7 +11,7 @@ export const Token = ({
 }: any) => {
   const [dragging, setDragging] = useState(false);
   const archer = useRef();
-  const { scale, _id, ...restProps } = tokenProps;
+  const { scale, _id, idx, ...restProps } = tokenProps;
   const cellSize = 80 * scale;
   
   function snapToGrid(
@@ -39,10 +39,10 @@ export const Token = ({
 
   function onDragStart() {
     setDragging(true);
-    onTokenChange(_id, {
+    onTokenChange(_id, idx, {
       ...tokenProps,
       alpha: 0.5,
-    });
+    },'state');
   }
 
   function onDragEnd(archer: any) {
@@ -51,7 +51,7 @@ export const Token = ({
       const snappedX = snapToGrid(x, 0, parentWidth, cellSize);
       const snappedY = snapToGrid(y, 0, parentHeight, cellSize);
       setDragging(false);
-      onTokenChange(_id, {
+      onTokenChange(_id, idx, {
         ...tokenProps,
         x: snappedX,
         y: snappedY,
@@ -63,7 +63,14 @@ export const Token = ({
   function onDragMove(archer: any) {
     return (e: any) => {
       if (dragging) {
+        // console.log(e)
         const { x, y } = e.data.getLocalPosition(archer.parent);
+        // onTokenChange(_id, idx, {
+        //   ...tokenProps,
+        //   x: x,
+        //   y: y,
+        //   alpha: 1,
+        // },'socket');
         archer.x = x;
         archer.y = y;
       }
