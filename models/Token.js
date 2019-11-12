@@ -5,6 +5,9 @@ const TokenSchema = mongoose.Schema({
       type: String,
       required: true
     },
+    description: {
+      type: String,
+    },
     tokenSetup: {
       x:{ type: Number, default: 40},
       y:{ type: Number, default: 40},
@@ -16,9 +19,6 @@ const TokenSchema = mongoose.Schema({
       },
     },
     img: {
-      type: String,
-    },
-    description: {
       type: String,
     },
     createdAt: {
@@ -42,14 +42,11 @@ const TokenSchema = mongoose.Schema({
       type: Boolean,
       default: true
     },
-    noteId: 
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'note',
-    },
     authorizedPlayers: [{
+      _id:{
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'user'
+      ref: 'user'},
+      name: String
     }
     ],
   });

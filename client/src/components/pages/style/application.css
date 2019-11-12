@@ -47,13 +47,48 @@
 
 }
 
-.chat{
+.journal{
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: auto;
+}
+
+.token-journal{
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.journal > * ~ * {
+    border-top: 1px solid #e3e3e3;
+}
+
+.token-journal .token-info > * ~ * {
+    margin-left: 1rem;
+}
+
+.token-journal .token-actions > * ~ *{
+    margin-left: 0.5rem;
+}
+
+.journal-actions{
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid #e3e3e3;
+}
+
+.journal-actions > * ~ * {
+    padding-left: 1rem;
+}
+
+.chat{
+    height: 100%;
+    display: flex;
     flex-direction: column-reverse;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: auto;
 }
 
 .chat-text{

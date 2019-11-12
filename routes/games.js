@@ -4,7 +4,6 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Game = require('../models/Game');
-const Note = require('../models/Note');
 const Token = require('../models/Token');
 const Chat = require('../models/Chat');
 const mongoose = require('mongoose');
@@ -27,8 +26,6 @@ router.get('/:id?', auth, async (req, res) => {
         _id: { $in: players },
         status: true
       }).select('_id name');
-      const notes = await Note.find({ gameId: game._id,
-        status: true });
       const tokens = await Token.find({
         gameId: game._id,
         status: true
@@ -37,7 +34,6 @@ router.get('/:id?', auth, async (req, res) => {
       res.json({
         ...restGame._doc,
         players: fullPlayers,
-        notes,
         tokens,
         chatLog
       });

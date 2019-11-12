@@ -8,8 +8,15 @@ module.exports = function (io) {
             GameSession.onNewClient(io,client, gameId,token);
         })
 
-        client.on('update_token', function( {gameId, tokenId, data}){
+        client.on('update_token_setup', function( {gameId, tokenId, data}){
             GameSession.onUpdateTokenSetup(io, gameId, tokenId, data);
+        })
+        client.on('update_token', function( {gameId, tokenId, token, fields}){
+            GameSession.onUpdateToken(io, gameId, tokenId, token, fields);
+        })
+
+        client.on('delete_token', function( {gameId, tokenId}){
+            GameSession.onDeleteToken(io, gameId, tokenId);
         })
 
         client.on('create_token', function({gameId, name, description}){

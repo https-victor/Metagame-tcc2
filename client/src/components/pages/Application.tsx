@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { Stage } from '@inlet/react-pixi';
 import {
-  Button, Menu, Icon, Badge, 
+  Button, Menu, Icon, Badge, Avatar, 
 } from 'antd';
 import io from 'socket.io-client';
 import moment from 'moment';
@@ -17,8 +17,12 @@ import Icosahedron from '../../assets/svg/icosahedron.svg';
 import './style/application.css';
 import { GameContext } from '../../hooks/contexts/GameContext';
 import { Token } from '../old/Token';
-import { Input } from '../generics';
+import { Input, Dialog, ButtonProps } from '../generics';
 import { AppContext } from '../../hooks/contexts';
+import { useDialog } from '../../hooks/generics/useDialog';
+import { useForm } from '../../hooks/generics/useForm';
+import { tokenFormValidators } from '../../utils/validators';
+import { eventTargetValue } from '../../utils/functions';
 
 // const defaultHost = `${window.location.protocol}//${
 //   window.location.hostname === 'localhost'
@@ -30,29 +34,15 @@ const client = io(
     ? `${window.location.protocol}//${window.location.hostname}:5000`
     : '',
 );
-// import { useRequest } from '../../hooks/providers/useRequest';
-// import { AppContext } from '../../hooks/contexts';
-
-export type TokenProps = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  alpha: number;
-};
-
-export const initialTokenProps = {
-  x: 40,
-  y: 40,
-  width: 80,
-  height: 80,
-  alpha: 1,
-};
 
 export const Application = () => {
   const { history } = useContext<any>(AppContext);
   const { game } = useContext<any>(GameContext);
   const vtContainer = useRef<any>(undefined);
+
+  const dialog = useDialog();
+  const form = useForm(tokenFormValidators);
+  const [selectedToken, setSelectedToken] = useState<any>({});
 
   const [actualGame, setActualGame] = useState<any>({});
   const [gameLoading, setGameLoading] = useState(true);
@@ -89,11 +79,6 @@ export const Application = () => {
             gameId: newGame._id || gameIdLS,
             token,
           });
-          client.emit('create_token', {
-            gameId: newGame._id || gameIdLS,
-            name: 'teste',
-            description: 'testedesc',
-          });
         }
       } else if (gameIdLS) {
         const newGame = await game.onSync({
@@ -105,11 +90,6 @@ export const Application = () => {
           client.emit('connect_session', {
             gameId: newGame._id || gameIdLS,
             token,
-          });
-          client.emit('create_token', {
-            gameId: newGame._id || gameIdLS,
-            name: 'teste',
-            description: 'testedesc',
           });
         }
       } else {
@@ -134,6 +114,8 @@ export const Application = () => {
   //   },
   //   [game, setActualGame],
   // );
+
+  const tokenList = actualGame.tokens || [];
 
   const onUpdateToken = useCallback(
     (tokenList: any) => {
@@ -189,13 +171,11 @@ export const Application = () => {
 
   useEffect(() => {
     client.on('token_update', onUpdateToken);
-    // client.on('refresh_game', onUpdateGame);
     client.on('dice_roll', onDiceRoll);
     client.on('receive_msg', onReceiveMsg);
     return () => {
       client.off('dice_roll', onDiceRoll);
       client.off('token_update', onUpdateToken);
-      // client.off('refresh_game', onUpdateGame);
       client.off('receive_msg', onReceiveMsg);
     };
   }, [onUpdateToken, onDiceRoll, onReceiveMsg]);
@@ -221,11 +201,11 @@ export const Application = () => {
     }
     if (opt === 'default' || opt === 'socket') {
       if (opt) {
-        client.emit('update_token', {
+        client.emit('update_token_setup', {
           gameId: actualGame._id,
           tokenId: _id,
           data,
-        }); 
+        });
       }
     }
   }
@@ -251,6 +231,27 @@ export const Application = () => {
     }
   }
 
+  function onOpenDialog(
+    mode: 'addToken' | 'editToken' | 'deleteToken',
+    token?: any,
+  ) {
+    return () => {
+      if (mode === 'addToken') {
+        form.onReset();
+      } else if (mode === 'editToken') {
+        console.log(token);
+        form.onSet({
+          name: token.name,
+          description: token.description,
+          img: token.img,
+          type: token.type,
+        });
+      }
+      setSelectedToken(token);
+      dialog.onChange(mode);
+    };
+  }
+
   let drawerBody;
   switch (drawerMenu) {
     case 'chat':
@@ -260,7 +261,7 @@ export const Application = () => {
             {actualGame.chatLog
               ? actualGame.chatLog.log
                 ? actualGame.chatLog.log.map((m: any) => (
-                  <div className="msg">
+                  <div className="msg" key={m._id}>
                     <span className="msg-text">{m.msg}</span>
                     <span className="msg-sender">{m.sender.name}</span>
                     <span className="msg-date">
@@ -288,11 +289,179 @@ export const Application = () => {
       );
       break;
     case 'journal':
-      drawerBody = <Fragment>Diário</Fragment>;
+      drawerBody = (
+        <Fragment>
+          <div className="journal">
+            {tokenList.map((token: any) => (
+              <div key={token._id} className="token-journal">
+                <div className="token-info">
+                  <Avatar shape="square" icon="file-image" />
+                  <span>{token.name}</span>
+                </div>
+                <div className="token-actions">
+                  <Button
+                    shape="circle"
+                    size="small"
+                    onClick={onOpenDialog('editToken', token)}
+                    icon="edit"
+                    type="primary"
+                    ghost
+                  />
+                  <Button
+                    shape="circle"
+                    size="small"
+                    onClick={onOpenDialog('deleteToken', token)}
+                    icon="delete"
+                    type="danger"
+                    ghost
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="journal-actions">
+            <Button type="primary" onClick={onOpenDialog('addToken')}>
+              <Icon type="plus" />
+              <span>Adicionar Miniatura</span>
+            </Button>
+          </div>
+        </Fragment>
+      );
       break;
     default:
       drawerBody = 'Loading';
   }
+
+  function onCloseDialog() {
+    setSelectedToken({});
+    form.onReset();
+    dialog.onChange('');
+  }
+
+  const renderDialogBody = () => {
+    switch (dialog.mode) {
+      case 'addToken':
+        return (
+          <div className="token-form">
+            <Input
+              value={form.values.name}
+              label="Nome:"
+              error={form.errors.nome}
+              onChange={form.onChange('name', eventTargetValue)}
+            />
+            <Input
+              value={form.values.description}
+              label="Descrição:"
+              error={form.errors.description}
+              onChange={form.onChange('description', eventTargetValue)}
+            />
+          </div>
+        );
+      case 'editToken':
+        return (
+          <div className="token-form">
+            <Input
+              value={form.values.name}
+              label="Nome:"
+              error={form.errors.nome}
+              onChange={form.onChange('name', eventTargetValue)}
+            />
+            <Input
+              value={form.values.description}
+              label="Descrição:"
+              error={form.errors.description}
+              onChange={form.onChange('description', eventTargetValue)}
+            />
+            <Input
+              value={form.values.img}
+              label="Imagem:"
+              error={form.errors.img}
+              onChange={form.onChange('img', eventTargetValue)}
+            />
+            <Input
+              value={form.values.type}
+              label="Tipo:"
+              error={form.errors.type}
+              onChange={form.onChange('type', eventTargetValue)}
+            />
+          </div>
+        );
+      default:
+        return <div>Tem certeza que deseja deletar o token?</div>;
+    }
+  };
+
+  function onSubmit() {
+    if (dialog.mode === 'editToken') {
+      const formErrors = form.validationErrors();
+      console.log(formErrors);
+      if (Object.keys(formErrors).length < 1) {
+        client.emit('update_token', {
+          gameId: actualGame._id,
+          tokenId: selectedToken._id,
+          token: localStorage.getItem('jwt'),
+          fields: {
+            ...form.values,
+          },
+        });
+        onCloseDialog();
+      } else {
+        form.onSet(formErrors, 'errors');
+      }
+    } else if (dialog.mode === 'addToken') {
+      const formErrors = form.validationErrors();
+      if (Object.keys(formErrors).length < 1) {
+        client.emit('create_token', {
+          gameId: actualGame._id,
+          name: form.values.name,
+          description: form.values.description,
+        });
+        onCloseDialog();
+      } else {
+        form.onSet(formErrors, 'errors');
+      }
+    } else {
+      client.emit('delete_token', {
+        gameId: actualGame._id,
+        tokenId: selectedToken._id,
+      });
+      onCloseDialog();
+    }
+  }
+
+  const getDialogButtons = (): ButtonProps[] => {
+    switch (dialog.mode) {
+      case 'addToken':
+        return [
+          {
+            key: 'next',
+            type: 'primary',
+            children: 'Adicionar',
+            onClick: onSubmit,
+          },
+        ];
+      case 'editToken':
+        return [
+          {
+            key: 'next',
+            type: 'primary',
+            children: 'Editar',
+            ghost: true,
+            onClick: onSubmit,
+          },
+        ];
+      default:
+        return [
+          {
+            key: 'next',
+            type: 'danger',
+            children: 'Deletar',
+            onClick: onSubmit,
+          },
+        ];
+    }
+  };
+
   return (
     <div className={`app-layout ${drawer ? '' : 'hidden'}`}>
       <div className="vt-container" ref={vtContainer}>
@@ -312,16 +481,15 @@ export const Application = () => {
               parentWidth={stageWidth}
               parentHeight={stageHeight}
             />
-            {actualGame.tokens
-              && actualGame.tokens.map((token: any, idx: any) => (
-                <Token
-                  key={token._id}
-                  onTokenChange={onTokenChange}
-                  tokenProps={{ ...token.tokenSetup, _id: token._id, idx }}
-                  parentWidth={stageWidth}
-                  parentHeight={stageHeight}
-                />
-              ))}
+            {tokenList.map((token: any, idx: any) => (
+              <Token
+                key={token._id}
+                onTokenChange={onTokenChange}
+                tokenProps={{ ...token.tokenSetup, _id: token._id, idx }}
+                parentWidth={stageWidth}
+                parentHeight={stageHeight}
+              />
+            ))}
           </Stage>
         )}
       </div>
@@ -376,6 +544,14 @@ export const Application = () => {
         </div>
         {drawerBody}
       </div>
+      <Dialog
+        width="1020px"
+        body={renderDialogBody()}
+        closable={false}
+        actions={getDialogButtons()}
+        onClose={onCloseDialog}
+        open={dialog.mode}
+      />
     </div>
   );
 };
