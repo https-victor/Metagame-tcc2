@@ -311,7 +311,7 @@ function checkGame(game, res) {
 function checkUserPermisison(gmId, userId, res){
   if (gmId.toString() !== userId) {
     return res
-      .status(401)
+      .status(500)
       .json({ errors: [{ msg: 'Not authorized', type: 'authorization' }] });
   }
 }

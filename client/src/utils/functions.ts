@@ -1,11 +1,10 @@
-
-
 import { useState } from 'react';
 
 export const identity = (v: any) => v;
 export const eventTargetValue = (e: any) => e.target.value;
 export const eventTargetChecked = (e: any) => e.target.checked;
-
+export const getBase64 = (buffer: any) => btoa(String.fromCharCode(...(new Uint8Array(buffer) as any)));
+export const getImgSrc = (img: any) => `data:${img.contentType};base64,${getBase64(img.buffer.data)}`;
 export function useAsyncState<T>(initialValue: any = undefined) {
   const [value, setValue] = useState<T>(initialValue);
   const setter = (x: any) => new Promise((resolve) => {
@@ -42,11 +41,11 @@ export function setReducedState(
 export const getRawPhone = (num: string) => typeof num === 'string' ? num.replace(/[\(\)\s_-]/g, '') : num;
 
 export const getPrefixedRoute = (path: string | any) => {
-    if (process.env.NODE_ENV === 'development') {
-      return path;
-    }
-    if (typeof path === 'string') {
-      return process.env.PUBLIC_URL + path;
-    }
-    return process.env.PUBLIC_URL + path.pathname;
-  };
+  if (process.env.NODE_ENV === 'development') {
+    return path;
+  }
+  if (typeof path === 'string') {
+    return process.env.PUBLIC_URL + path;
+  }
+  return process.env.PUBLIC_URL + path.pathname;
+};

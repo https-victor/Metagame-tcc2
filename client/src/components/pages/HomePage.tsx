@@ -29,7 +29,7 @@ export const HomePage = () => {
     localStorage.removeItem('gameId');
     history.push('/biblioteca');
   }
-
+  console.log(auth.user);
   useEffect(() => {
     async function getGame() {
       const gameId = localStorage.getItem('gameId');

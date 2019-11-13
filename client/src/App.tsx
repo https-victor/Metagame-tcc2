@@ -7,6 +7,7 @@ import { AppContext } from './hooks/contexts';
 import { useApp } from './components/pages/hooks/useApp';
 import { HomePage } from './components/pages/HomePage';
 import { Chat } from './components/pages/Chat';
+import { Test } from './Test';
 
 function App({ props }: any) {
   // const [isLogged, setIsLogged] = useState(false);
@@ -42,6 +43,7 @@ function App({ props }: any) {
           <Spin className="spinner" />
         ) : (
           <Switch>
+            <Route exact path="/test" component={Test} />
             <Route path="/" component={root} />
             <Route component={NotFound} />
           </Switch>

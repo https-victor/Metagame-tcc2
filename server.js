@@ -4,13 +4,14 @@ const cors = require('cors');
 const path=require('path');
 const socketIO = require('socket.io');
 const socket = require('./config/ws');
-const app = express()
+const bodyParser = require('body-parser');
+const app = express();
 // Connect Database
 connectDb();
 app.use(cors());
 // Init Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json({ extended:false }));
-
 
 
 // Define Routes
@@ -18,7 +19,6 @@ app.use(express.json({ extended:false }));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/games', require('./routes/games'));
 app.use('/api/auth', require('./routes/auth'));
-
 
 // Serve static assets in production
 if(process.env.NODE_ENV === 'production'){
