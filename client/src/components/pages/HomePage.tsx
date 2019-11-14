@@ -1,60 +1,72 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, Fragment } from 'react';
 import { Switch, Route, Link } from 'react-router-dom';
-import { Button } from 'antd';
+import {
+  Avatar, Dropdown, Menu, Icon, Button, 
+} from 'antd';
 import Logo from '../../assets/svg/logo.svg';
 import { AppContext } from '../../hooks/contexts';
 import { Library } from './Library';
 import { GameContext } from '../../hooks/contexts/GameContext';
 import { Application } from './Application';
 import { useRequest } from '../../hooks/providers/useRequest';
+import { getImgSrc } from '../../utils/functions';
+import { Community } from './Community';
 
 export const HomePage = () => {
-  const { auth, history, onRequest } = useContext<any>(AppContext);
+  const { auth, history } = useContext<any>(AppContext);
+  const { user, onLogout } = auth;
 
   const game = useRequest({});
   console.log(game);
 
-  const isOpen = history.location.pathname === '/app';
+  const isOpen = history.location.pathname === '/play';
 
   function openGame(g: any) {
     return () => {
       game.onSync({ path: `games/${g._id}`, method: 'GET' });
       localStorage.setItem('gameId', g._id);
-      history.push('/app');
+      history.push('/play');
     };
   }
+  const [selectedMenu, setMenu] = useState('home');
 
-  function closeGame() {
-    game.onSetData({});
-    localStorage.removeItem('gameId');
-    history.push('/biblioteca');
+  function handleMenu(e: any) {
+    setMenu(e.key);
   }
-  console.log(auth.user);
+
+  const menu = (
+    <Menu>
+      <Menu.Item>
+        <div className="profile-dropdown">
+          <Icon type="user" />
+          <span className="username">Meu perfil</span>
+        </div>
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item>Opção 1</Menu.Item>
+      <Menu.Item>Opção 2</Menu.Item>
+      <Menu.Divider />
+      <Menu.Item>
+        <Icon type="setting" />
+        <span>Configurações</span>
+      </Menu.Item>
+      <Menu.Item onClick={onLogout}>
+        <Icon type="logout" />
+        <span>Sair</span>
+      </Menu.Item>
+    </Menu>
+  );
   useEffect(() => {
-    async function getGame() {
-      const gameId = localStorage.getItem('gameId');
-      console.log(gameId);
-      if (gameId) {
-        try {
-          const lastGame = await onRequest({
-            path: `games/${gameId}`,
-            method: 'GET',
-          });
-          console.log(lastGame);
-          if (isOpen) {
-            console.log(isOpen);
-            game.onSetData(lastGame);
-          }
-        } catch (err) {
-          console.error(err);
-          closeGame();
-        }
-      } else {
-        closeGame();
-      }
+    switch (history.location.pathname) {
+      case '/campanhas':
+        setMenu('library');
+        break;
+      default:
+        setMenu('home');
+        break;
     }
-    getGame();
   }, []);
+
   return (
     <GameContext.Provider
       value={{
@@ -62,39 +74,75 @@ export const HomePage = () => {
           ...game.data,
           isOpen,
           openGame,
-          closeGame,
           setGame: game.onSetData,
           onSync: game.onSync,
+          loading: game.loading,
         },
       }}
     >
       <div className={`page-container ${!isOpen ? 'no-game' : ''}`}>
         {!isOpen ? (
           <div className="page-header">
-            <div className="logo-container">
-              <img src={Logo} alt="" />
-              <p>Metagame</p>
+            <div className="first-part-header">
+              <div className="logo-container">
+                <img src={Logo} alt="" />
+                <p>Metagame</p>
+              </div>
+              <div className="menu-container">
+                <Menu
+                  mode="horizontal"
+                  onClick={handleMenu}
+                  selectedKeys={[selectedMenu]}
+                >
+                  <Menu.Item key="home">
+                    <Link to="/">
+                      <Icon type="home" />
+                      <span>Início</span>
+                    </Link>
+                  </Menu.Item>
+                  <Menu.Item key="library">
+                    <Link to="/campanhas">
+                      <Icon type="flag" />
+                      <span>Campanhas</span>
+                    </Link>
+                  </Menu.Item>
+                  <Menu.Item key="community">
+                    <Link to="/comunidade">
+                      <Icon type="global" />
+                      <span>Comunidade</span>
+                    </Link>
+                  </Menu.Item>
+                  <Menu.Item key="help" disabled>
+                    <Link to="/ajuda">
+                      <Icon type="question-circle" />
+                      <span>Ajuda</span>
+                    </Link>
+                  </Menu.Item>
+                </Menu>
+              </div>
             </div>
-            <div className="menu-container">
-              <Link to="/biblioteca/recentes" style={{ color: 'white' }}>
-                Biblioteca
-              </Link>
-            </div>
-            <div className="actions-container">
-              <Link to="/">
-                <Button type="default" ghost onClick={auth.onLogout}>
-                  Sair
-                </Button>
-              </Link>
+
+            <div className="header-actions">
+              <Dropdown overlay={menu} trigger={['click']}>
+                <div className="user-profile-action">
+                  <Button type="link" size="small" className="username">{user.name}</Button>
+                  <Avatar
+                    icon={user.img ? undefined : 'user'}
+                    src={user.img ? getImgSrc(user.img) : undefined}
+                  />
+                </div>
+              </Dropdown>
             </div>
           </div>
         ) : (
           undefined
         )}
         <Switch>
-          <Route exact path="/" render={(props: any) => 'Home'} />
-          <Route path="/biblioteca" component={Library} />
-          <Route path="/app" render={() => <Application />} />
+          <Route exact path="/" render={() => 'Home'} />
+          <Route path="/campanhas" component={Library} />
+          <Route exact path="/comunidade" component={Community} />
+          <Route exact path="/ajuda" component={Community} />
+          <Route exact path="/play" render={() => <Application />} />
         </Switch>
       </div>
     </GameContext.Provider>

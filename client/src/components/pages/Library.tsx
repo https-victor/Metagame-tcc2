@@ -1,8 +1,7 @@
 import React, { useContext, Fragment, useState } from 'react';
 import {
-  Button, Icon, Spin, Empty, 
+  Button, Icon, Spin, Empty, Menu, 
 } from 'antd';
-import { Link } from 'react-router-dom';
 import { useLibrary } from './hooks/useLibrary';
 import { GameCard } from '../business/GameCard';
 import { Input } from '../generics';
@@ -21,12 +20,18 @@ export const Library = () => {
   const { onRequest, history } = useContext<any>(AppContext);
   const { game } = useContext<any>(GameContext);
 
-  const { openGame, setGame } = game;
+  const { openGame, setGame, loading } = game;
   // openGame(game)
   // trycatch
 
+  function closeSider() {
+    setSiderMode('');
+    gameForm.onReset();
+    setGame({});
+  }
+
   function openSider(mode: string, selectedGame?: any) {
-    return () => {
+    return async () => {
       setSiderMode(mode);
       if (mode === 'edit') {
         gameForm.onSet({ name: game.name, description: game.description });
@@ -36,17 +41,19 @@ export const Library = () => {
         gameForm.onReset();
       }
       if (mode === 'details') {
-        if (selectedGame) {
-          setGame(selectedGame);
+        if (selectedGame && selectedGame._id !== game._id) {
+          try {
+            await game.onSync({
+              path: `games/${selectedGame._id}`,
+              method: 'GET',
+            });
+          } catch (err) {
+            console.log(err);
+            closeSider();
+          }
         }
       }
     };
-  }
-
-  function closeSider() {
-    setSiderMode('');
-    gameForm.onReset();
-    setGame({});
   }
 
   async function deleteGame() {
@@ -113,7 +120,7 @@ export const Library = () => {
         <Fragment>
           <Button onClick={openSider('details')}>Cancelar</Button>
           <Button type="primary" onClick={editGame}>
-            Atualizar
+            Editar
           </Button>
         </Fragment>
       );
@@ -134,88 +141,110 @@ export const Library = () => {
   let siderBody;
   switch (siderMode) {
     case 'details':
-      siderBody = <GameDetails game={game} openGame={openGame} />;
+      siderBody = loading.state ? (
+        <Spin />
+      ) : (
+        <GameDetails closeSider={closeSider} game={game} openGame={openGame} />
+      );
       break;
     case 'edit':
     case 'add':
-      siderBody = <GameForm game={game} form={gameForm} mode={siderMode} />;
+      siderBody = (
+        <GameForm
+          closeSider={closeSider}
+          game={game}
+          form={gameForm}
+          mode={siderMode}
+        />
+      );
       break;
     default:
       siderBody = undefined;
       break;
   }
+
+  const [selectedMenu, setSelectedMenu] = useState('recent');
+
+  function handleMenu(e: any) {
+    setSelectedMenu(e.key);
+  }
   return (
     <div className="library-page-container">
-      <div className="library-header">
-        <Link to="/biblioteca/recentes">
-          <Button type="primary" ghost onClick={getGames()}>
-            Jogos recentes
-          </Button>
-        </Link>
-        <Button type="primary" ghost onClick={getGames('my')}>
-          Meus jogos
-        </Button>
-        <Button type="primary" ghost onClick={getGames('subscribed')}>
-          Jogos inscritos
-        </Button>
-        <Input suffix={<Icon type="search" />} placeholder="Pesquisar" />
-      </div>
-      <div className={`library-wrapper ${siderMode ? '' : 'hidden'}`}>
-        <div
-          className={`container ${
-            games.loading.state
-            || (games.data.length === 0
-              && history.location.pathname === '/biblioteca/inscritos')
-              ? 'center'
-              : ''
-          }`}
-        >
-          {!games.loading.state ? (
-            <Fragment>
-              {games.data.length !== 0 ? (
-                games.data.map((game: any, idx: any) => (
-                  <GameCard
-                    key={game._id}
-                    data={game}
-                    tabIndex={idx}
-                    ondblclick={openGame(game)}
-                    onClick={openSider('details', game)}
-                  />
-                ))
-              ) : history.location.pathname !== '/biblioteca/inscritos' ? (
-                undefined
-              ) : (
-                <Empty description="Você não está inscrito em nenhum outro jogo!" />
-              )}
-              {history.location.pathname !== '/biblioteca/inscritos' ? (
-                <GameCard
-                  key="new"
-                  className="new"
-                  onClick={openSider('add')}
-                />
-              ) : (
-                undefined
-              )}
-            </Fragment>
+      <div className="library-wrapper">
+        <div className="library-menu">
+          <Menu
+            mode="vertical"
+            onClick={handleMenu}
+            selectedKeys={[selectedMenu]}
+          >
+            <div className="search-menu ant-menu-item custom">
+              <Input
+                formItemProps={{ className: 'search-box' }}
+                suffix={<Icon type="search" />}
+                placeholder="Pesquisar"
+              />
+            </div>
+            <Menu.Divider />
+            <Menu.Item key="recent" onClick={getGames()}>
+              <Icon type="history" />
+              <span>Campanhas recentes</span>
+            </Menu.Item>
+            <Menu.Item key="my-games" onClick={getGames('my')}>
+              <Icon type="inbox" />
+              <span>Minhas campanhas</span>
+            </Menu.Item>
+            <Menu.Item key="share-alt" onClick={getGames('subscribed')}>
+              <Icon type="link" />
+              <span>Campanhas inscritas</span>
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="new-campaign" onClick={openSider('add')}>
+              <Icon type="plus" />
+              <span>Criar nova campanha</span>
+            </Menu.Item>
+          </Menu>
+        </div>
+        <div className="library-content">
+          <div
+            className={`container ${siderMode ? '' : 'hidden'} ${
+              games.loading.state
+              || (games.data.length === 0
+                && history.location.pathname === '/campanhas/inscritas')
+                ? 'center'
+                : ''
+            }`}
+          >
+            {!games.loading.state ? (
+              <Fragment>
+                {games.data.length !== 0 ? (
+                  games.data.map((game: any, idx: any) => (
+                    <GameCard
+                      key={game._id}
+                      data={game}
+                      tabIndex={idx}
+                      ondblclick={openGame(game)}
+                      onClick={openSider('details', game)}
+                    />
+                  ))
+                ) : history.location.pathname !== '/campanhas/inscritas' ? (
+                  undefined
+                ) : (
+                  <Empty description="Você não está inscrito em nenhum outro jogo!" />
+                )}
+              </Fragment>
+            ) : (
+              <Spin />
+            )}
+          </div>
+          {siderMode ? (
+            <div className="library-sider">
+              {siderBody}
+              <div className="actions-wrapper">{actions}</div>
+            </div>
           ) : (
-            <Spin />
+            undefined
           )}
         </div>
-        {siderMode ? (
-          <div className="library-sider">
-            <Button
-              className="close-button"
-              shape="circle"
-              icon="close"
-              type="primary"
-              onClick={closeSider}
-            />
-            {siderBody}
-            <div className="actions-wrapper">{actions}</div>
-          </div>
-        ) : (
-          undefined
-        )}
       </div>
     </div>
   );

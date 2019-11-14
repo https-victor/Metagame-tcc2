@@ -20,12 +20,17 @@ router.get('/:id?', auth, async (req, res) => {
           // Check game status
       checkGame(game, res);
 
-      const { players, ...restGame } = game;
+      const { players, gmId, ...restGame } = game;
 
+      const newPlayers = [...players.filter(p=>String(p)!=String(gmId))];
       const fullPlayers = await User.find({
-        _id: { $in: players },
+        _id: { $in: newPlayers },
         status: true
-      }).select('_id name');
+      }).select('_id name img');
+      const gm = await User.findOne({
+        _id: gmId,
+        status: true
+      }).select('_id name img');
       const tokens = await Token.find({
         gameId: game._id,
         status: true
@@ -33,6 +38,7 @@ router.get('/:id?', auth, async (req, res) => {
       const chatLog = await Chat.findOne({gameId: game._id});
       res.json({
         ...restGame._doc,
+        gm,
         players: fullPlayers,
         tokens,
         chatLog

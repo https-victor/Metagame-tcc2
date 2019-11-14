@@ -11,17 +11,15 @@ export const useLibrary = () => {
       let endpoint = null;
       endpoint = { path: `games/?filter=${path}`, method: 'GET' };
       switch (path) {
-        case 'recent':
-          history.push('/biblioteca/recentes');
-          break;
         case 'my':
-          history.push('/biblioteca/meus-jogos');
+          history.push('/campanhas/meus-jogos');
           break;
         case 'subscribed':
-          history.push('/biblioteca/inscritos');
+          history.push('/campanhas/inscritas');
           break;
         default:
-          history.push('/biblioteca/');
+          history.push('/campanhas');
+          break;
       }
       games.onSync(endpoint);
     };

@@ -19,6 +19,24 @@ const User = require('../models/User');
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
+    
+    if (req.query.nome && req.query.email){
+      const users = await User.find({email: req.query.email, nome: req.query.nome, status: true})
+      .select('-password')
+      .sort({
+        registerDate: -1
+      });
+      return res.json(users);
+
+    } else if(req.query.nome || req.query.email){
+      const users = await User.find({[(req.query.nome?nome:email)]: req.query.nome?req.query.nome:req.query.email, status: true})
+      .select('-password')
+      .sort({
+        registerDate: -1
+      });
+    return res.json(users);
+    }
+     else {
     let user = await User.findOne({ role: 2, _id: req.user.id });
     if (!user) {
       return res
@@ -33,6 +51,7 @@ router.get('/', auth, async (req, res) => {
         registerDate: -1
       });
     res.json(users);
+    }
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ errors: [{ msg: 'Server Error', type: 'server' }] });
@@ -68,7 +87,6 @@ router.post('/upload/:id', upload.single('picture'), async (req, res) => {
 // @access  Private
 router.get('/picture/:id', async (req, res) => {
   var filename = req.params.id;
-
   try {
     const user = await User.findById(filename);
     res.contentType('image/jpeg');

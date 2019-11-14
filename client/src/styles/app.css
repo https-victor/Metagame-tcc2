@@ -23,56 +23,93 @@ p, h1{
 /* Header */
 
 .page-header{
-  background: var(--GREY);
   display: flex;
+  border-bottom: 1px solid #e3e3e3;
   justify-content: space-between;
   align-items: center;
 }
 
-.page-header > :first-child{
-  margin-left: 1rem;
-}
-
-.page-header > :last-child{
-  margin-right: 1rem;
+.page-header .first-part-header{
+  display: flex;
+  align-items: center;
+  width: calc( 100% - 250px - 2.5rem );
 }
 
 /* Logo Container */
 
 .logo-container{
-  width: max-content;
+  width: 250px;
   height: min-content;
+  padding-left: 2.5rem;
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+.logo-container img {
+  
+  height: 35px;
 }
 
 .logo-container p {
-  color: white;
+  color: #EF925E;
   margin-left: 1rem;
   /* font-weight: bold; */
-  font-size: 1.5rem;
-}
-
-.logo-container svg:first-of-type{
-  margin-right: 1rem;
+  font-size: 1.25rem;
 }
 
 /* Actions Container */
 
-.actions-container .ant-btn ~ .ant-btn {
+.profile-header-wrapper{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-actions .user-profile-action{
+  cursor: pointer;
+}
+
+.header-actions .user-profile-action .ant-btn span{
+  font-size: 14px;
+}
+
+.profile-header-wrapper > span ~ span {
+  margin-left: 0.5rem;
+}
+
+.header-actions{
+  width: 250px;
+  height: 100%;
+  padding: 0 2.5rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.page-header .ant-menu {
+  background: none;
+  border-bottom: none;
+}
+
+
+.header-actions > * ~ * {
+  margin-left: 2rem;
+}
+
+.actions-container{
+  align-items: center;
+  display: flex;
+}
+
+.actions-container > * ~ * {
   margin-left: 0.5rem;
 }
 
 /* Content */
-
-.page-container.no-game .logo-container{
-  
-}
-
 .page-container{
   height: 100%;
   display: grid;
-  grid-template-rows: 80px calc( 100% - 80px);
+  grid-template-rows: 50px calc( 100% - 50px);
 }
 
 .landing-page-container{
@@ -179,8 +216,17 @@ p, h1{
 }
 
 .menu-container{
-  width: 100%;
-  margin: 0 5rem;
+  width: calc( 100% - 250px);
+  height: 100%;
+}
+
+.menu-container .ant-menu{
+  height: 100%;
+  line-height: 50px;
+}
+
+.menu-container .ant-menu-item{
+  height: 100%;
 }
 
 .menu-container > * ~ * {

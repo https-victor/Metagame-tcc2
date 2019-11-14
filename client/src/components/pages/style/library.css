@@ -1,32 +1,84 @@
 .library-page-container{
     position: relative;
+    height: 100%;
+    display: flex;
 }
 
 .library-header{
     display: flex;
+    
     justify-content: center;
     align-items: center;
-    height: 70px;
+    border-bottom: 1px solid #e3e3e3;
+    height: 60px;
 }
 
 .library-header > * ~ * {
     margin-left: 1rem!important;
 }
 
-.library-wrapper {
-    height: calc( 100% - 70px );
+
+.library-menu{
+    padding-left: 2.5rem;
+    display: flex;
+    
+    flex-direction: column;
+    width: 250px;
+    height: 100%;
+}
+
+.library-menu .ant-menu{
+    height: 100%;
+    border-left: 1px solid #e3e3e3;
+}
+
+.library-menu .ant-menu .ant-menu-item.custom{
+    cursor: auto
+}
+
+.library-menu .ant-menu .search-menu{
+    display: flex;
+    align-items: center;
+}
+
+.library-menu .search-box{
+    width: 100%;
+    
+}
+
+
+.library-wrapper{
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.library-content {
+    width: calc( 100% - 250px - 2.5rem);
+    border-right: 1px solid #e3e3e3;
+    margin-right: 2.5rem;
     display: flex;
 }
 
+.library-wrapper.hidden {
+    width: 100%;
+}
+
 .container{
-    overflow-y: overlay;
-    width: calc( 100% - 400px);
-    border-top: 1px solid #5B5B5B;
+    height: 100%;
+    width: calc( 100% - 400px );
+    overflow: overlay;    
+    overflow-y: overlay;    
+    overflow-x: hidden;    
     padding: 2rem;
     display: grid;
     grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+    grid-template-rows: repeat(auto-fit,200px);
     gap: 33px;
-    background: #756DA9;
+}
+
+.container.hidden{
+    width:100%;
 }
 
 .container.center{
@@ -35,15 +87,14 @@
     align-items: center;
 }
 
-.library-wrapper.hidden .container{
-    width: 100%
+.library-wrapper.hidden{
+    width: 100%;
 }
 
 .library-sider {
-    position: relative;
+    width: 400px;
     display: grid;
-    border-top: 1px solid #5B5B5B;
-    border-left: 1px solid #5B5B5B;
+    border-left: 1px solid #e3e3e3;
     grid-template-rows: 1fr 80px;
     grid-template-areas: 
         "game"
@@ -51,7 +102,9 @@
 }
 
 .game-wrapper{
+    position: relative;
     overflow-y: overlay;
+    overflow-x: hidden;
     grid-area: game;
     display: grid;
     grid-template-rows: 200px auto 100px 100px;
@@ -60,10 +113,21 @@
 
 .form-game-wrapper{
     grid-area: game;
+    position: relative;
     display: grid;
     grid-template-rows: 200px auto;
     grid-template-columns: 400px;
 }
+
+.div-upload{
+    width: 100%;
+    height: 100%;    
+}
+
+.div-upload span{
+    opacity: 0;
+}
+
 
 .close-button{
     z-index: 9;
@@ -77,12 +141,22 @@
 }
 
 .game-header{
+    position: relative;
     height: 200px;
+    justify-content: flex-end;
+}
+
+.game-header .ant-upload, .game-header .ant-upload-drag-container{
+    width: 100%;
+    height: 100%;
+}
+.game-overlay{
+    width: 400px;
+    padding: 0 20px;
+    position: absolute;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    padding-bottom: 20px;
+    bottom: 20px;
 }
 
 .description-wrapper{

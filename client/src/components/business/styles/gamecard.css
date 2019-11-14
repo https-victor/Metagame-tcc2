@@ -15,20 +15,20 @@
     height: 25%;
 }
 .new .card-content{
-    border: 2px solid white;
+    border: 2px solid #EF925E;
     border-bottom: none;
 }
 
 .card-footer{
     height: 35px;
     border-radius: 0 0 10px 10px;
-    background: white;
+    background: #EF925E;
     text-align: center;
     line-height: 35px;
 }
 
 .card-footer span{
-    color: #5B5B5B;
+    color: white;
     font-size: 1.1rem;
 
 }

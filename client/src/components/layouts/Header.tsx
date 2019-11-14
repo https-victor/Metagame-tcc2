@@ -20,7 +20,7 @@ export const Header = ({
           content={(
             <PopoverLogin
               form={loginForm}
-              onLogin={() => history.push('/app')}
+              onLogin={() => history.push('/play')}
             />
 )}
           placement="bottom"

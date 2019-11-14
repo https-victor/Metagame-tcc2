@@ -158,7 +158,7 @@ export const useApp = (props: any) => {
       globalLoading.onChange(true);
       const userData = await getUser(token);
       setUser({ ...user, ...userData }).then(() => setIsLogged(true));
-      props.history.push('/biblioteca');
+      props.history.push('/');
       localStorage.setItem('jwt', `${token}`);
     } catch (e) {
       setUser({}).then(() => setIsLogged(false));
