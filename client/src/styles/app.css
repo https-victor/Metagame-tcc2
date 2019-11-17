@@ -32,7 +32,7 @@ p, h1{
 .page-header .first-part-header{
   display: flex;
   align-items: center;
-  width: calc( 100% - 250px - 2.5rem );
+  width: calc( 100% - 250px - 5rem );
 }
 
 /* Logo Container */
@@ -80,10 +80,11 @@ p, h1{
 .header-actions{
   width: 250px;
   height: 100%;
-  padding: 0 2.5rem;
+  margin: 0 2.5rem;
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  
 }
 
 .page-header .ant-menu {

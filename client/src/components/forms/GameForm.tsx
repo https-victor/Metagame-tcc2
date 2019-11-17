@@ -8,6 +8,8 @@ export const GameForm = ({
   closeSider, game, form, mode, 
 }: any) => {
   const { values, errors, onChange } = form;
+  const [fileList, setFileList] = useState([]);
+
   function getBase64(img: any, callback: any) {
     const reader = new FileReader();
     reader.addEventListener('load', () => callback(reader.result));
@@ -15,16 +17,16 @@ export const GameForm = ({
   }
   const [imgUrl, setImgUrl] = useState(undefined);
   function beforeUpload(file: any) {
-    console.log(file);
     getBase64(file, (imageUrl: any) => setImgUrl(imageUrl));
     return true;
   }
 
   function handleChange(info: any) {
-    console.log(info);
+    let newFileList = info.fileList.slice(-1);
+    return newFileList[0].originFileObj;
   }
   return (
-    <Form className="form-game-wrapper">
+    <Form className="form-game-wrapper" id="formx">
       <Button
         className="close-button"
         shape="circle"
@@ -34,9 +36,11 @@ export const GameForm = ({
       />
       <div className="game-header">
         <Dragger
+          // action={`http://localhost:5000/api/games/upload/${game._id}`}
+          name="picture"
           showUploadList={false}
           beforeUpload={beforeUpload}
-          onChange={handleChange}
+          onChange={onChange('picture',handleChange)}
         >
           <div
             className="div-upload"
@@ -53,7 +57,7 @@ export const GameForm = ({
             <span>Upload</span>
           </div>
         </Dragger>
-        <div className="game-overlay">
+        <div className="game-overlay input">
           <Input
             value={values.name}
             placeholder={mode === 'add' ? 'Nome' : undefined}

@@ -17,7 +17,6 @@ export const HomePage = () => {
   const { user, onLogout } = auth;
 
   const game = useRequest({});
-  console.log(game);
 
   const isOpen = history.location.pathname === '/play';
 
@@ -28,11 +27,12 @@ export const HomePage = () => {
       history.push('/play');
     };
   }
-  const [selectedMenu, setMenu] = useState('home');
+  const [selectedMenu, setMenu] = useState('');
 
   function handleMenu(e: any) {
     setMenu(e.key);
   }
+  
 
   const menu = (
     <Menu>
@@ -57,9 +57,15 @@ export const HomePage = () => {
     </Menu>
   );
   useEffect(() => {
-    switch (history.location.pathname) {
+    switch (window.location.pathname) {
       case '/campanhas':
         setMenu('library');
+        break;
+        case '/comunidade':
+        setMenu('community');
+        break;
+        case '/ajuda':
+        setMenu('help');
         break;
       default:
         setMenu('home');
@@ -76,6 +82,7 @@ export const HomePage = () => {
           openGame,
           setGame: game.onSetData,
           onSync: game.onSync,
+          onGet: game.onGet,
           loading: game.loading,
         },
       }}
@@ -140,9 +147,9 @@ export const HomePage = () => {
         <Switch>
           <Route exact path="/" render={() => 'Home'} />
           <Route path="/campanhas" component={Library} />
-          <Route exact path="/comunidade" component={Community} />
-          <Route exact path="/ajuda" component={Community} />
-          <Route exact path="/play" render={() => <Application />} />
+          <Route path="/comunidade" component={Community} />
+          <Route path="/ajuda" component={Community} />
+          <Route path="/play" render={() => <Application />} />
         </Switch>
       </div>
     </GameContext.Provider>

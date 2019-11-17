@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Button, Popover } from 'antd';
+import { Button, Popover, Menu, Icon } from 'antd';
 import { Route, Switch } from 'react-router';
 import { Link } from 'react-router-dom';
 import { Welcome } from './Welcome';
@@ -21,6 +21,12 @@ export const LandingPage = () => {
   const signUpForm = useForm(signUpFormValidators);
   function handlePopoverChange(visible: any) {
     setLoginPopOver(visible);
+  }
+
+  const [selectedMenu, setSelectedMenu] = useState('home');
+
+  function handleMenu (e:any){
+    setSelectedMenu(e.key);
   }
 
   async function onLogin(e: any) {
@@ -76,12 +82,35 @@ export const LandingPage = () => {
   return (
     <div className="app-container">
       <div className="page-container">
-        <div className="page-header">
-          <div className="logo-container">
-            <img src={Logo} alt="" />
-            <p>Metagame</p>
-          </div>
-          <div className="actions-container">
+      <div className="page-header">
+            <div className="first-part-header">
+              <div className="logo-container">
+                <img src={Logo} alt="" />
+                <p>Metagame</p>
+              </div>
+              <div className="menu-container">
+                <Menu
+                  mode="horizontal"
+                  onClick={handleMenu}
+                  selectedKeys={[selectedMenu]}
+                >
+                  <Menu.Item key="home">
+                    <Link to="/">
+                      <Icon type="home" />
+                      <span>Início</span>
+                    </Link>
+                  </Menu.Item>
+                  <Menu.Item key="about">
+                    <Link to="/sobre">
+                      <Icon type="exclamation-circle" />
+                      <span>Sobre</span>
+                    </Link>
+                  </Menu.Item>
+                </Menu>
+              </div>
+            </div>
+
+            <div className="header-actions">
             <Popover
               content={<PopoverLogin form={loginForm} onLogin={onLogin} />}
               placement="bottom"
@@ -89,17 +118,17 @@ export const LandingPage = () => {
               visible={loginPopOver}
               onVisibleChange={handlePopoverChange}
             >
-              <Button type="link" ghost>
+              <Button type="link">
                 Entrar
               </Button>
             </Popover>
             <Link to="/signup">
-              <Button type="default" ghost>
+              <Button type="primary">
                 Cadastrar-se
               </Button>
             </Link>
+            </div>
           </div>
-        </div>
         <Switch>
           <Route
             path="/signup"

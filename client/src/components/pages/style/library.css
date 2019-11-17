@@ -101,13 +101,15 @@
         "actions";
 }
 
+
+
 .game-wrapper{
     position: relative;
     overflow-y: overlay;
     overflow-x: hidden;
     grid-area: game;
     display: grid;
-    grid-template-rows: 200px auto 100px 100px;
+    grid-template-rows: 200px auto;
     grid-template-columns: 400px;
 }
 
@@ -152,11 +154,39 @@
 }
 .game-overlay{
     width: 400px;
-    padding: 0 20px;
+    padding: 0 10px;
+    padding-bottom: 10px;
+    box-shadow: 0px 0px 15px 12px rgba(0,0,0,0.65);
+    background: rgba(0,0,0,0.65);
     position: absolute;
     display: flex;
     flex-direction: column;
-    bottom: 20px;
+    bottom: 0px;
+}
+
+.game-overlay.input{
+    box-shadow: initial;
+    background: initial;
+}
+
+.sider-body{
+    z-index: 9;
+}
+
+.game-overlay .ant-btn{
+    width: 150px;
+    margin: 0 auto;
+}
+
+.game-overlay .ant-row{
+    padding-top: 0.5rem;
+}
+
+.game-name{
+    font-size: 1.25rem;
+    text-align: center;
+    color: white;
+    padding-bottom: 0.25rem;
 }
 
 .description-wrapper{
@@ -172,7 +202,6 @@
     border-bottom: 1px solid #e3e3e3;
     padding: 20px 40px;
     display: flex;
-    align-items: center;
     overflow: overlay;
     justify-content: space-around;
     flex-direction: column;
@@ -180,10 +209,23 @@
 
 .players{
     overflow: overlay;
-    max-height: 100px;
     padding: 20px;
     display: flex;
     flex-direction: column;
+}
+
+.player{
+    display: flex;
+    padding: 0.5rem;
+    align-items: center;
+}
+
+.player:first-child{
+    padding-top: 0;
+}
+
+.player > * ~ *{
+    padding-left: 1rem;
 }
 .actions-wrapper{
     height: 80px;

@@ -51,7 +51,7 @@ export const Application = () => {
   function closeGame() {
     setActualGame({});
     localStorage.removeItem('gameId');
-    history.push('/biblioteca');
+    history.push('/campanhas');
   }
   const [drawerMenu, setDrawerMenu] = useState<any>('loading');
 
@@ -239,7 +239,6 @@ export const Application = () => {
       if (mode === 'addToken') {
         form.onReset();
       } else if (mode === 'editToken') {
-        console.log(token);
         form.onSet({
           name: token.name,
           description: token.description,
@@ -394,7 +393,6 @@ export const Application = () => {
   function onSubmit() {
     if (dialog.mode === 'editToken') {
       const formErrors = form.validationErrors();
-      console.log(formErrors);
       if (Object.keys(formErrors).length < 1) {
         client.emit('update_token', {
           gameId: actualGame._id,

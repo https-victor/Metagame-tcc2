@@ -13,14 +13,30 @@ var storage = multer.memoryStorage();
 var upload = multer({ storage: storage });
 
 const User = require('../models/User');
+const Game = require('../models/Game');
 
 // @route   GET api/users
 // @desc    Get all users
 // @access  Private
-router.get('/', auth, async (req, res) => {
+router.get('/:id', auth, async (req, res) => {
   try {
-    
-    if (req.query.nome && req.query.email){
+    if (req.params.id){
+      const user = await User.findById(req.user.id).select('-password');
+      console.log(user);
+      const myFullGames = await Game.find({
+        _id: { $in: user.games },
+        gmId: req.user.id,
+        status: true
+      }).select('_id name img description');
+      
+      const otherFullGames = await Game.find({
+        _id: { $in: user.games },
+        gmId: { $ne: req.user.id},
+        status: true
+      }).select('_id name img description');
+      return res.json({...user._doc,myGames:myFullGames,otherGames:otherFullGames});
+    }
+    else if (req.query.nome && req.query.email){
       const users = await User.find({email: req.query.email, nome: req.query.nome, status: true})
       .select('-password')
       .sort({
@@ -37,7 +53,7 @@ router.get('/', auth, async (req, res) => {
     return res.json(users);
     }
      else {
-    let user = await User.findOne({ role: 2, _id: req.user.id });
+    let user = await User.findOne({ role: 2, _id: req.user.id }).select('-password');
     if (!user) {
       return res
         .status(500)

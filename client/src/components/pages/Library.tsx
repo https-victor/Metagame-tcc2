@@ -1,4 +1,4 @@
-import React, { useContext, Fragment, useState } from 'react';
+import React, { useContext, Fragment, useState, useEffect } from 'react';
 import {
   Button, Icon, Spin, Empty, Menu, 
 } from 'antd';
@@ -11,24 +11,38 @@ import { useForm } from '../../hooks/generics/useForm';
 import { AppContext } from '../../hooks/contexts';
 import { GameForm } from '../forms/GameForm';
 import { GameDetails } from '../business/GameDetails';
-import { gameValidators } from '../../utils/validators';
+import { gameValidators, searchValidators } from '../../utils/validators';
+import { eventTargetValue } from '../../utils/functions';
 
 export const Library = () => {
   const { games, getGames } = useLibrary();
   const [siderMode, setSiderMode] = useState('');
   const gameForm = useForm(gameValidators, {});
-  const { onRequest, history } = useContext<any>(AppContext);
+  const searchForm = useForm(searchValidators, {});
+  const { onRequest, history, auth } = useContext<any>(AppContext);
   const { game } = useContext<any>(GameContext);
 
   const { openGame, setGame, loading } = game;
-  // openGame(game)
-  // trycatch
 
   function closeSider() {
     setSiderMode('');
     gameForm.onReset();
     setGame({});
   }
+
+  useEffect(() => {
+    const pathName = window.location.pathname;
+    switch(pathName){
+      case '/campanhas/meus-jogos':
+      case '/campanhas/inscritas':
+      case '/campanhas':
+        break;
+        default:
+          
+          break;
+    }
+  }, [])
+
 
   function openSider(mode: string, selectedGame?: any) {
     return async () => {
@@ -48,7 +62,7 @@ export const Library = () => {
               method: 'GET',
             });
           } catch (err) {
-            console.log(err);
+            console.error(err);
             closeSider();
           }
         }
@@ -72,7 +86,7 @@ export const Library = () => {
 
   async function addNewGame() {
     try {
-      await gameForm.onSubmit(
+      const newGame = await gameForm.onSubmit(
         {
           path: 'games/',
           method: 'POST',
@@ -80,11 +94,47 @@ export const Library = () => {
         },
         (e: any) => console.log(e),
       );
+      if(gameForm.values.picture){
+      const jwtFromLS = localStorage.getItem('jwt');
+      let formFile = new FormData();
+      formFile.append('picture',gameForm.values.picture);
+      await fetch(`http://localhost:5000/api/games/upload/${newGame._id}`,{method:'POST', headers:{'x-auth-token':jwtFromLS as any},body: formFile});
+      }
       gameForm.onReset('errors');
       await games.onSync();
       closeSider();
     } catch (err) {
       console.error(err);
+    }
+  }
+  async function onUnsubscribe () {
+    try {
+      await game.onGet({
+        path: `games/unsubscribe/${game._id}`,
+        method: 'POST',
+      });
+      closeSider();
+      await games.onSync({
+        path: `games/?filter=all`,
+        method: 'GET',
+      });
+    } catch (err) {
+      console.error(err)
+    }
+  }
+  async function onSubscribe () {
+    try {
+      await game.onGet({
+        path: `games/subscribe/${game._id}`,
+        method: 'POST',
+      });
+      closeSider();
+      await games.onSync({
+        path: `games/?filter=all`,
+        method: 'GET',
+      });
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -94,10 +144,16 @@ export const Library = () => {
         {
           path: `games/${game._id}`,
           method: 'PUT',
-          body: gameForm.values,
+          body: gameForm.values
         },
-        (e: any) => console.log(e),
+        (e: any) => console.log(e)
       );
+      if(gameForm.values.picture){
+      const jwtFromLS = localStorage.getItem('jwt');
+      let formFile = new FormData();
+      formFile.append('picture',gameForm.values.picture);
+      await fetch(`http://localhost:5000/api/games/upload/${game._id}`,{method:'POST', headers:{'x-auth-token':jwtFromLS as any},body: formFile});
+      }
       gameForm.onReset('errors');
       await games.onSync();
       closeSider();
@@ -106,11 +162,11 @@ export const Library = () => {
     }
   }
 
-  let actions;
+  let actions=undefined;
   switch (siderMode) {
     case 'add':
       actions = (
-        <Button type="primary" onClick={addNewGame}>
+        <Button type='primary' onClick={addNewGame}>
           Adicionar
         </Button>
       );
@@ -119,23 +175,35 @@ export const Library = () => {
       actions = (
         <Fragment>
           <Button onClick={openSider('details')}>Cancelar</Button>
-          <Button type="primary" onClick={editGame}>
+          <Button type='primary' onClick={editGame}>
             Editar
           </Button>
         </Fragment>
       );
       break;
+    case 'details':
+      actions = 
+        auth.user._id === game.gmId ? (
+          <Fragment>
+            <Button
+              icon='edit'
+              type='primary'
+              onClick={openSider('edit')}
+            >
+              Editar
+            </Button>
+            <Button icon='delete' type='danger' onClick={deleteGame}>
+              Deletar
+            </Button>
+          </Fragment>
+        ) : game.players ? (game.players.filter((player:any)=>player._id===auth.user._id).length>0 ? (<Button icon='api' type='danger' onClick={onUnsubscribe}>
+        Desinscrever-se
+      </Button>):undefined): (
+        undefined
+      )
+      break;
     default:
-      actions = (
-        <Fragment>
-          <Button icon="edit" ghost type="primary" onClick={openSider('edit')}>
-            Editar
-          </Button>
-          <Button icon="delete" ghost type="danger" onClick={deleteGame}>
-            Deletar
-          </Button>
-        </Fragment>
-      );
+      actions = undefined;
       break;
   }
   let siderBody;
@@ -144,7 +212,7 @@ export const Library = () => {
       siderBody = loading.state ? (
         <Spin />
       ) : (
-        <GameDetails closeSider={closeSider} game={game} openGame={openGame} />
+        <GameDetails closeSider={closeSider} onSubscribe={onSubscribe} game={game} openGame={openGame} />
       );
       break;
     case 'edit':
@@ -168,6 +236,12 @@ export const Library = () => {
   function handleMenu(e: any) {
     setSelectedMenu(e.key);
   }
+
+  function submitSearch (e:any){
+    // return () =>{
+      games.onSync({method:'GET',path:`games/?filter=search&name=${searchForm.values.search}`})
+    // }
+  }
   return (
     <div className="library-page-container">
       <div className="library-wrapper">
@@ -180,7 +254,10 @@ export const Library = () => {
             <div className="search-menu ant-menu-item custom">
               <Input
                 formItemProps={{ className: 'search-box' }}
-                suffix={<Icon type="search" />}
+                value={searchForm.values.search}
+                error={searchForm.errors.search}
+                onChange={searchForm.onChange('search',eventTargetValue)}
+                addonAfter={<Icon onClick={submitSearch} type="search" style={{marginRight: 0}}/>}
                 placeholder="Pesquisar"
               />
             </div>

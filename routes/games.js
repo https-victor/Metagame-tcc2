@@ -6,8 +6,9 @@ const User = require('../models/User');
 const Game = require('../models/Game');
 const Token = require('../models/Token');
 const Chat = require('../models/Chat');
-const mongoose = require('mongoose');
-
+const multer = require('multer');
+var storage = multer.memoryStorage(); 
+var upload = multer({ storage: storage });
 
 // @route   GET api/games/:filter?
 // @desc    Retorna todos os jogos do usuário baseado no parâmetro de filtro
@@ -17,12 +18,12 @@ router.get('/:id?', auth, async (req, res) => {
     if (req.params.id) {
       let game = await Game.findById(req.params.id);
 
-          // Check game status
+      // Check game status3
       checkGame(game, res);
 
       const { players, gmId, ...restGame } = game;
 
-      const newPlayers = [...players.filter(p=>String(p)!=String(gmId))];
+      const newPlayers = [...players.filter(p => String(p) != String(gmId))];
       const fullPlayers = await User.find({
         _id: { $in: newPlayers },
         status: true
@@ -35,7 +36,7 @@ router.get('/:id?', auth, async (req, res) => {
         gameId: game._id,
         status: true
       });
-      const chatLog = await Chat.findOne({gameId: game._id});
+      const chatLog = await Chat.findOne({ gameId: game._id });
       res.json({
         ...restGame._doc,
         gm,
@@ -56,47 +57,71 @@ router.get('/:id?', auth, async (req, res) => {
           break;
         }
         case 'subscribed': {
-          const { games } = await User.findById(req.user.id, 'games');
+          const { games } = await User.findById(
+            req.user.id,
+            'games'
+          );
           const otherGames = await Game.find({
             _id: { $in: games },
+            gmId: { $ne: req.user.id },
             status: true
           });
           res.json([...otherGames]);
           break;
         }
         case 'all': {
-          const myGames = await Game.find({
+          const { games } = await User.findById(
+            req.user.id,
+            'games'
+          );
+          let myConditions = {
             gmId: req.user.id,
             status: true
-          }).sort({
+          };
+          let otherConditions = {
+            _id: { $in: games },
+            gmId: { $ne: req.user.id },
+            status: true
+          };
+          const myGames = await Game.find(
+            myConditions
+          ).sort({
             createdAt: -1
           });
-
-          const { games } = await User.findById(req.user.id, 'games');
-          const otherGames = await Game.find({
-            _id: { $in: games },
-            status: true
+          const otherGames = await Game.find(
+            otherConditions
+          ).sort({
+            createdAt: -1
           });
           res.json([...myGames, ...otherGames]);
           break;
         }
+        case 'search':
+            const { games } = await User.findById(
+              req.user.id,
+              'games'
+            );
+            let conditions = {
+              status: true
+            };
+  
+            if (req.query.name) {
+              conditions.$text = { $search : req.query.name };
+            }
+            if (req.query.gmId) {
+              conditions.gmId = req.query.gmId;
+            }
+            const newGames = await Game.find(
+              conditions
+            ).sort({
+              createdAt: -1
+            });
+            res.json([...newGames]);
+          break;
         default: {
           throw new Error('Filter query invalid');
         }
       }
-    } else {
-      const myGames = await Game.find({
-        gmId: req.user.id,
-        status: true
-      }).sort({
-        createdAt: -1
-      });
-      const { games } = await User.findById(req.user.id, 'games');
-      const otherGames = await Game.find({
-        _id: { $in: games },
-        status: true
-      });
-      res.json({ myGames, otherGames });
     }
   } catch (err) {
     console.error(err.message);
@@ -131,6 +156,7 @@ router.post(
         gmId: req.user.id,
         players: [_id]
       });
+      await User.findByIdAndUpdate(req.user.id,{ $push: { games: newGame._id }},{upsert: true});
       const game = await newGame.save();
       const newChat = new Chat({
         gameId: game._id
@@ -147,7 +173,37 @@ router.post(
   }
 );
 
+// @route   POST api/games/upload/:id
+// @desc    POST all users
+// @access  Private
+router.post('/upload/:id', [upload.single('picture'),auth], async (req, res) => {
+  const img = req.file.buffer;
+  const encode_image = img.toString('base64');
 
+  const finalImg = {
+    contentType: req.file.mimetype,
+    buffer: new Buffer.from(encode_image, 'base64')
+  };
+  try {
+    let game = await Game.findById(req.params.id);
+
+    // Check game status
+    checkGame(game, res);
+
+    // Check user permission
+    checkUserPermisison( game.gmId, req.user.id,res );
+
+    await Game.findByIdAndUpdate(
+      req.params.id,
+      { $set: { img: finalImg } },
+      { new: true }
+    );
+    res.json({ reports: [{ msg: 'File uploaded', type: 'upload' }] });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ errors: [{ msg: 'Server Error', type: 'server' }] });
+  }
+});
 
 // @route   PUT api/games/:id
 // @desc    Update game
@@ -245,6 +301,11 @@ router.post('/unsubscribe/:id', auth, async (req, res) => {
     const newPlayers = game.players.filter(
       playerId => playerId._id != req.user.id
     );
+
+    const u = await User.findById(req.user.id);
+    const newGamesID = u.games.filter(gameId => String(gameId)!==req.params.id);
+    console.log(newGamesID,newPlayers);
+    await User.findByIdAndUpdate(req.user.id,{$set:{games:newGamesID}},{ new: true })
 
     game = await Game.findByIdAndUpdate(
       req.params.id,

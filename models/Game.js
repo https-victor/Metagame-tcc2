@@ -32,4 +32,6 @@ const GameSchema = mongoose.Schema({
   },
 });
 
+GameSchema.index({name:'text',description:'text'});
+
 module.exports = mongoose.model('game', GameSchema);
