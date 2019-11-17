@@ -98,7 +98,11 @@ export const Library = () => {
       const jwtFromLS = localStorage.getItem('jwt');
       let formFile = new FormData();
       formFile.append('picture',gameForm.values.picture);
-      await fetch(`http://localhost:5000/api/games/upload/${newGame._id}`,{method:'POST', headers:{'x-auth-token':jwtFromLS as any},body: formFile});
+      await fetch(`${window.location.protocol}//${
+        window.location.hostname === 'localhost'
+          ? `${window.location.hostname}:5000`
+          : `${window.location.hostname}`
+      }/api/games/upload/${newGame._id}`,{method:'POST', headers:{'x-auth-token':jwtFromLS as any},body: formFile});
       }
       gameForm.onReset('errors');
       await games.onSync();
@@ -152,7 +156,11 @@ export const Library = () => {
       const jwtFromLS = localStorage.getItem('jwt');
       let formFile = new FormData();
       formFile.append('picture',gameForm.values.picture);
-      await fetch(`http://localhost:5000/api/games/upload/${game._id}`,{method:'POST', headers:{'x-auth-token':jwtFromLS as any},body: formFile});
+      await fetch(`${window.location.protocol}//${
+        window.location.hostname === 'localhost'
+          ? `${window.location.hostname}:5000`
+          : `${window.location.hostname}`
+      }/api//games/upload/${game._id}`,{method:'POST', headers:{'x-auth-token':jwtFromLS as any},body: formFile});
       }
       gameForm.onReset('errors');
       await games.onSync();
