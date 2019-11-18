@@ -36,7 +36,6 @@ export const GameForm = ({
       />
       <div className="game-header">
         <Dragger
-          // action={`http://localhost:5000/api/games/upload/${game._id}`}
           name="picture"
           showUploadList={false}
           beforeUpload={beforeUpload}
