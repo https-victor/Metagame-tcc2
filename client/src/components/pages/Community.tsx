@@ -1,7 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import {
-  Button, Icon, Menu, 
-} from 'antd';
+import { Button, Icon, Menu } from 'antd';
 import { Input } from '../generics';
 import './style/community.css';
 import { AppContext } from '../../hooks/contexts';
@@ -34,55 +32,62 @@ export const Community = () => {
         setSelectedMenu('');
         break;
     }
-  }, []);
+  }, [window.location.pathname]);
 
   let body = undefined;
   switch (selectedMenu) {
     case 'profile':
-      body = <Route path="/comunidade/usuario" component={MyProfile}/>;
+      body = <Route path='/comunidade/usuario' component={MyProfile} />;
       break;
-      case 'feed':
-        body = <Route exact path="/comunidade" render={()=>'Feed em construção!'}/>;
-        break;
-        case 'groups':
-            body = <Route path="/comunidade/grupos" render={()=>'Grupos em construção!'}/>;
+    case 'feed':
+      body = (
+        <Route exact path='/comunidade' render={() => 'Feed em construção!'} />
+      );
+      break;
+    case 'groups':
+      body = (
+        <Route
+          path='/comunidade/grupos'
+          render={() => 'Grupos em construção!'}
+        />
+      );
       break;
     default:
       body = '404 Não encontrado';
   }
 
   return (
-    <div className="community-page-container">
-      <div className="community-wrapper">
-        <div className="community-menu">
+    <div className='community-page-container'>
+      <div className='community-wrapper'>
+        <div className='community-menu'>
           <Menu
-            mode="vertical"
+            mode='vertical'
             onClick={handleMenu}
             selectedKeys={[selectedMenu]}
           >
-            <Menu.Item key="profile">
-              <Link to="/comunidade/usuario">
-              <Icon type="user" />
-              <span>Meu Perfil</span>
+            <Menu.Item key='profile'>
+              <Link to='/comunidade/usuario'>
+                <Icon type='user' />
+                <span>Meu Perfil</span>
               </Link>
             </Menu.Item>
-            <div className="search-menu ant-menu-item custom">
+            <div className='search-menu ant-menu-item custom'>
               <Input
                 formItemProps={{ className: 'search-box' }}
-                suffix={<Icon type="search" />}
-                placeholder="Pesquisar"
+                suffix={<Icon type='search' />}
+                placeholder='Pesquisar'
               />
             </div>
             <Menu.Divider />
-            <Menu.Item key="feed">
-              <Link to="/comunidade">
-                <Icon type="layout" />
+            <Menu.Item key='feed'>
+              <Link to='/comunidade'>
+                <Icon type='layout' />
                 <span>Feed de notícias</span>
               </Link>
             </Menu.Item>
-            <Menu.Item key="groups">
-              <Link to="/comunidade/grupos">
-                <Icon type="team" />
+            <Menu.Item key='groups'>
+              <Link to='/comunidade/grupos'>
+                <Icon type='team' />
                 <span>Grupos</span>
               </Link>
             </Menu.Item>
@@ -96,7 +101,7 @@ export const Community = () => {
             </div> */}
           </Menu>
         </div>
-        <div className="community-content">{body}</div>
+        <div className='community-content'>{body}</div>
       </div>
       {/* <div className={`community-sider ${siderMode ? '' : 'hidden'}`}>
         <Button icon="close" onClick={() => setSiderMode(false)} />

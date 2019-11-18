@@ -6,7 +6,10 @@ export const useLibrary = () => {
   const { history } = useContext<any>(AppContext);
   const games = useRequest([], { path: 'games?filter=all', method: 'GET' });
 
-  function getGames(path: 'all' | 'recent' | 'my' | 'subscribed' = 'all',id?:any) {
+  function getGames(
+    path: 'all' | 'recent' | 'my' | 'subscribed' = 'all',
+    id?: any
+  ) {
     return () => {
       let endpoint = null;
       endpoint = { path: `games/?filter=${path}`, method: 'GET' };
@@ -17,23 +20,22 @@ export const useLibrary = () => {
         case 'subscribed':
           history.push('/campanhas/inscritas');
           break;
-            case 'all':
-            case 'recent':
+        case 'all':
+        case 'recent':
           history.push('/campanhas');
           break;
-          default:
-              history.push(`/campanhas/${id}`);
-              break;
+        default:
+          history.push(`/campanhas/${id}`);
+          break;
       }
       games.onSync(endpoint);
     };
   }
-  console.log(games);
   useEffect(() => {
     games.onSync();
   }, []);
   return {
     games,
-    getGames,
+    getGames
   };
 };

@@ -12,17 +12,19 @@ import {
 } from 'antd';
 import io from 'socket.io-client';
 import moment from 'moment';
+import Dragger from 'antd/lib/upload/Dragger';
+import { GameContext } from '../../hooks/contexts/GameContext';
 import { Grid } from '../old/Grid';
 import Icosahedron from '../../assets/svg/icosahedron.svg';
 import './style/application.css';
-import { GameContext } from '../../hooks/contexts/GameContext';
 import { Token } from '../old/Token';
 import { Input, Dialog, ButtonProps } from '../generics';
 import { AppContext } from '../../hooks/contexts';
 import { useDialog } from '../../hooks/generics/useDialog';
 import { useForm } from '../../hooks/generics/useForm';
 import { tokenFormValidators } from '../../utils/validators';
-import { eventTargetValue } from '../../utils/functions';
+import { eventTargetValue, getImgSrc } from '../../utils/functions';
+import ArcherImg from '../../assets/png/archer.png';
 
 // const defaultHost = `${window.location.protocol}//${
 //   window.location.hostname === 'localhost'
@@ -36,7 +38,7 @@ const client = io(
 );
 
 export const Application = () => {
-  const { history } = useContext<any>(AppContext);
+  const { history, onRequest } = useContext<any>(AppContext);
   const { game } = useContext<any>(GameContext);
   const vtContainer = useRef<any>(undefined);
 
@@ -129,6 +131,7 @@ export const Application = () => {
 
   const [diceRoll, setDiceRoll] = useState<any>('');
 
+  console.log(form.values)
   function rollDice() {
     const newNumber = String(Math.floor(Math.random() * 20) + 1);
     setDiceRoll(newNumber);
@@ -336,21 +339,36 @@ export const Application = () => {
     form.onReset();
     dialog.onChange('');
   }
+  function getBase64(img: any, callback: any) {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => callback(reader.result));
+    reader.readAsDataURL(img);
+  }
+  const [imgUrl, setImgUrl] = useState(undefined);
+  function beforeUpload(file: any) {
+    getBase64(file, (imageUrl: any) => setImgUrl(imageUrl));
+    return true;
+  }
+
+  function handleChange(info: any) {
+    let newFileList = info.fileList.slice(-1);
+    return newFileList[0].originFileObj;
+  }
 
   const renderDialogBody = () => {
     switch (dialog.mode) {
       case 'addToken':
         return (
-          <div className="token-form">
+          <div className='token-form'>
             <Input
               value={form.values.name}
-              label="Nome:"
+              label='Nome:'
               error={form.errors.nome}
               onChange={form.onChange('name', eventTargetValue)}
             />
             <Input
               value={form.values.description}
-              label="Descrição:"
+              label='Descrição:'
               error={form.errors.description}
               onChange={form.onChange('description', eventTargetValue)}
             />
@@ -358,28 +376,49 @@ export const Application = () => {
         );
       case 'editToken':
         return (
-          <div className="token-form">
+          <div className='token-form'>
+            <Dragger
+              // action={`http://localhost:5000/api/games/upload/${game._id}`}
+              name='picture'
+              showUploadList={false}
+              beforeUpload={beforeUpload}
+              onChange={form.onChange('picture', handleChange)}
+            >
+              <div
+                className='div-upload'
+                style={{
+                  background: `url(${imgUrl ||
+                    (actualGame.img
+                      ? actualGame.img.buffer
+                        ? getImgSrc(actualGame.img)
+                        : 'https://www.hopkinsmedicine.org/-/media/feature/noimageavailable.ashx?h=260&la=en&mh=260&mw=380&w=380&hash=C84FD22E1194885A737D9CF821CC61A861630CB1'
+                      : 'https://www.hopkinsmedicine.org/-/media/feature/noimageavailable.ashx?h=260&la=en&mh=260&mw=380&w=380&hash=C84FD22E1194885A737D9CF821CC61A861630CB1')}) no-repeat center/cover`,
+                }}
+              >
+                <span>Upload</span>
+              </div>
+            </Dragger>
             <Input
               value={form.values.name}
-              label="Nome:"
+              label='Nome:'
               error={form.errors.nome}
               onChange={form.onChange('name', eventTargetValue)}
             />
             <Input
               value={form.values.description}
-              label="Descrição:"
+              label='Descrição:'
               error={form.errors.description}
               onChange={form.onChange('description', eventTargetValue)}
             />
             <Input
               value={form.values.img}
-              label="Imagem:"
+              label='Imagem:'
               error={form.errors.img}
               onChange={form.onChange('img', eventTargetValue)}
             />
             <Input
               value={form.values.type}
-              label="Tipo:"
+              label='Tipo:'
               error={form.errors.type}
               onChange={form.onChange('type', eventTargetValue)}
             />
@@ -390,9 +429,24 @@ export const Application = () => {
     }
   };
 
-  function onSubmit() {
+  async function onSubmit() {
     if (dialog.mode === 'editToken') {
       const formErrors = form.validationErrors();
+      if(form.values.picture){
+        let formFile = new FormData();
+        formFile.append('picture',form.values.picture);
+        await fetch(
+          `${window.location.protocol}//${
+            window.location.hostname === 'localhost'
+              ? `${window.location.hostname}:5000`
+              : `${window.location.hostname}`
+          }/api/tokens/upload/${actualGame._id}/${selectedToken._id}`,
+          {
+            method: 'POST',
+            body: formFile,
+          }
+        );
+      }
       if (Object.keys(formErrors).length < 1) {
         client.emit('update_token', {
           gameId: actualGame._id,
@@ -403,11 +457,14 @@ export const Application = () => {
           },
         });
         onCloseDialog();
+      } else if(form.values.picture){
+        client.emit('update_token',undefined)
       } else {
         form.onSet(formErrors, 'errors');
       }
     } else if (dialog.mode === 'addToken') {
       const formErrors = form.validationErrors();
+      
       if (Object.keys(formErrors).length < 1) {
         client.emit('create_token', {
           gameId: actualGame._id,
@@ -483,7 +540,7 @@ export const Application = () => {
               <Token
                 key={token._id}
                 onTokenChange={onTokenChange}
-                tokenProps={{ ...token.tokenSetup, _id: token._id, idx }}
+                tokenProps={{ ...token.tokenSetup, _id: token._id, idx, img: getImgSrc(token.img) || ArcherImg }}
                 parentWidth={stageWidth}
                 parentHeight={stageHeight}
               />

@@ -22,7 +22,6 @@ router.get('/:id', auth, async (req, res) => {
   try {
     if (req.params.id){
       const user = await User.findById(req.user.id).select('-password');
-      console.log(user);
       const myFullGames = await Game.find({
         _id: { $in: user.games },
         gmId: req.user.id,

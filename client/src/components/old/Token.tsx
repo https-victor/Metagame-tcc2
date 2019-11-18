@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Sprite } from '@inlet/react-pixi';
-import ArcherImg from '../../assets/png/archer.png';
+
 
 export const Token = ({
   onTokenChange,
@@ -11,7 +11,7 @@ export const Token = ({
 }: any) => {
   const [dragging, setDragging] = useState(false);
   const archer = useRef();
-  const { scale, _id, idx, ...restProps } = tokenProps;
+  const { scale, _id, idx, img, ...restProps } = tokenProps;
   const cellSize = 80 * scale;
   
   function snapToGrid(
@@ -92,7 +92,7 @@ export const Token = ({
       mouseupoutside={onDragEnd(archer.current)}
       anchor={0.5}
       mousemove={onDragMove(archer.current)}
-      image={ArcherImg}
+      image={img}
     />
   );
 };

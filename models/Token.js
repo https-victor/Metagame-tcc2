@@ -18,9 +18,7 @@ const TokenSchema = mongoose.Schema({
         default: 100
       },
     },
-    img: {
-      type: String,
-    },
+    img: { buffer: Buffer, contentType: String },
     createdAt: {
       type: Date,
       default: Date.now
