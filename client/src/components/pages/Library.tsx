@@ -160,7 +160,7 @@ export const Library = () => {
         window.location.hostname === 'localhost'
           ? `${window.location.hostname}:5000`
           : `${window.location.hostname}`
-      }/api/games/upload/${game._id}`,{method:'POST', headers:{'x-auth-token':jwtFromLS as any},body: formFile});
+      }/api//games/upload/${game._id}`,{method:'POST', headers:{'x-auth-token':jwtFromLS as any},body: formFile});
       }
       gameForm.onReset('errors');
       await games.onSync();

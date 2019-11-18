@@ -7,7 +7,7 @@ export const Test = () => (
         window.location.hostname === 'localhost'
           ? `${window.location.hostname}:5000`
           : `${window.location.hostname}`
-      }/api/users/upload/5dc998d243502106686333eb"
+      }/api//users/upload/5dc998d243502106686333eb"
       encType="multipart/form-data"
       method="POST"
     >
