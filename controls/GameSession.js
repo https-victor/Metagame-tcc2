@@ -46,6 +46,7 @@ exports.onNewClient = async function(io, client, gameId, token) {
  * @param {*} gameId Id da sessão de jogo
  */
 exports.onUpdateTokenSetup = async function(io, gameId, tokenId, data) {
+  
   await Token.findByIdAndUpdate(
     tokenId,
     { $set: { tokenSetup: data } },
@@ -64,7 +65,7 @@ exports.onCreateToken = async function(io, gameId, name, description) {
   token = new Token({
     name: name,
     description: description,
-    gameId: gameId
+    gameId: gameId,
   });
   await token.save();
   const newList = await Token.find({ gameId: gameId, status: true });
@@ -78,17 +79,18 @@ exports.onCreateToken = async function(io, gameId, name, description) {
  * @param {*} gameId Id da sessão de jogo
  */
 exports.onUpdateToken = async function(io, gameId, tokenId, token, fields) {
-  const { user } = jwt.verify(token, config.get('jwtSecret'));
-  const userName = await User.findById(user.id, 'name');
-  const tokenFields = {
-    name: fields.name,
-    description: fields.description ? fields.description : undefined,
-    img: fields.img ? fields.img : undefined,
-    type: fields.type ? fields.type : undefined,
-    authorizedPlayers: [{ _id: user.id, name: userName.name }],
-    updatedAt: Date.now()
-  };
-  await Token.findByIdAndUpdate(tokenId, { $set: tokenFields }, { new: true });
+  if(fields!=='no-payload'){
+    const { user } = jwt.verify(token, config.get('jwtSecret'));
+    const userName = await User.findById(user.id, 'name');
+    const tokenFields = {
+      name: fields.name,
+      description: fields.description ? fields.description : undefined,
+      type: fields.type ? fields.type : undefined,
+      authorizedPlayers: [{ _id: user.id, name: userName.name }],
+      updatedAt: Date.now()
+    };
+    await Token.findByIdAndUpdate(tokenId, { $set: tokenFields }, { new: true });
+  }
   const newList = await Token.find({ gameId: gameId, status: true });
   io.to(gameId).emit('token_update', newList);
 };

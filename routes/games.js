@@ -304,7 +304,6 @@ router.post('/unsubscribe/:id', auth, async (req, res) => {
 
     const u = await User.findById(req.user.id);
     const newGamesID = u.games.filter(gameId => String(gameId)!==req.params.id);
-    console.log(newGamesID,newPlayers);
     await User.findByIdAndUpdate(req.user.id,{$set:{games:newGamesID}},{ new: true })
 
     game = await Game.findByIdAndUpdate(

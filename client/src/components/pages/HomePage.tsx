@@ -1,8 +1,6 @@
 import React, { useContext, useState, useEffect, Fragment } from 'react';
 import { Switch, Route, Link } from 'react-router-dom';
-import {
-  Avatar, Dropdown, Menu, Icon, Button, 
-} from 'antd';
+import { Avatar, Dropdown, Menu, Icon, Button } from 'antd';
 import Logo from '../../assets/svg/logo.svg';
 import { AppContext } from '../../hooks/contexts';
 import { Library } from './Library';
@@ -32,26 +30,25 @@ export const HomePage = () => {
   function handleMenu(e: any) {
     setMenu(e.key);
   }
-  
 
   const menu = (
     <Menu>
       <Menu.Item>
-        <div className="profile-dropdown">
-          <Icon type="user" />
-          <span className="username">Meu perfil</span>
-        </div>
+        <Link to='/comunidade/usuario'>
+          <Icon type='user' />
+          <span className='username'>Meu perfil</span>
+        </Link>
       </Menu.Item>
       <Menu.Divider />
       <Menu.Item>Opção 1</Menu.Item>
       <Menu.Item>Opção 2</Menu.Item>
       <Menu.Divider />
       <Menu.Item>
-        <Icon type="setting" />
+        <Icon type='setting' />
         <span>Configurações</span>
       </Menu.Item>
       <Menu.Item onClick={onLogout}>
-        <Icon type="logout" />
+        <Icon type='logout' />
         <span>Sair</span>
       </Menu.Item>
     </Menu>
@@ -59,19 +56,23 @@ export const HomePage = () => {
   useEffect(() => {
     switch (window.location.pathname) {
       case '/campanhas':
+      case '/campanhas/meus-jogos':
+      case '/campanhas/inscritas':
         setMenu('library');
         break;
-        case '/comunidade':
+      case '/comunidade':
+      case '/comunidade/grupos':
+      case '/comunidade/usuario':
         setMenu('community');
         break;
-        case '/ajuda':
+      case '/ajuda':
         setMenu('help');
         break;
       default:
         setMenu('home');
         break;
     }
-  }, []);
+  }, [window.location.pathname]);
 
   return (
     <GameContext.Provider
@@ -89,39 +90,39 @@ export const HomePage = () => {
     >
       <div className={`page-container ${!isOpen ? 'no-game' : ''}`}>
         {!isOpen ? (
-          <div className="page-header">
-            <div className="first-part-header">
-              <div className="logo-container">
-                <img src={Logo} alt="" />
+          <div className='page-header'>
+            <div className='first-part-header'>
+              <div className='logo-container'>
+                <img src={Logo} alt='' />
                 <p>Metagame</p>
               </div>
-              <div className="menu-container">
+              <div className='menu-container'>
                 <Menu
-                  mode="horizontal"
+                  mode='horizontal'
                   onClick={handleMenu}
                   selectedKeys={[selectedMenu]}
                 >
-                  <Menu.Item key="home">
-                    <Link to="/">
-                      <Icon type="home" />
+                  <Menu.Item key='home'>
+                    <Link to='/'>
+                      <Icon type='home' />
                       <span>Início</span>
                     </Link>
                   </Menu.Item>
-                  <Menu.Item key="library">
-                    <Link to="/campanhas">
-                      <Icon type="flag" />
+                  <Menu.Item key='library'>
+                    <Link to='/campanhas'>
+                      <Icon type='flag' />
                       <span>Campanhas</span>
                     </Link>
                   </Menu.Item>
-                  <Menu.Item key="community">
-                    <Link to="/comunidade">
-                      <Icon type="global" />
+                  <Menu.Item key='community'>
+                    <Link to='/comunidade'>
+                      <Icon type='global' />
                       <span>Comunidade</span>
                     </Link>
                   </Menu.Item>
-                  <Menu.Item key="help" disabled>
-                    <Link to="/ajuda">
-                      <Icon type="question-circle" />
+                  <Menu.Item key='help' disabled>
+                    <Link to='/ajuda'>
+                      <Icon type='question-circle' />
                       <span>Ajuda</span>
                     </Link>
                   </Menu.Item>
@@ -129,10 +130,12 @@ export const HomePage = () => {
               </div>
             </div>
 
-            <div className="header-actions">
+            <div className='header-actions'>
               <Dropdown overlay={menu} trigger={['click']}>
-                <div className="user-profile-action">
-                  <Button type="link" size="small" className="username">{user.name}</Button>
+                <div className='user-profile-action'>
+                  <Button type='link' size='small' className='username'>
+                    {user.name}
+                  </Button>
                   <Avatar
                     icon={user.img ? undefined : 'user'}
                     src={user.img ? getImgSrc(user.img) : undefined}
@@ -145,11 +148,11 @@ export const HomePage = () => {
           undefined
         )}
         <Switch>
-          <Route exact path="/" render={() => 'Home'} />
-          <Route path="/campanhas" component={Library} />
-          <Route path="/comunidade" component={Community} />
-          <Route path="/ajuda" component={Community} />
-          <Route path="/play" render={() => <Application />} />
+          <Route exact path='/' render={() => 'Home'} />
+          <Route path='/campanhas' component={Library} />
+          <Route path='/comunidade' component={Community} />
+          <Route path='/ajuda' component={Community} />
+          <Route path='/play' render={() => <Application />} />
         </Switch>
       </div>
     </GameContext.Provider>
