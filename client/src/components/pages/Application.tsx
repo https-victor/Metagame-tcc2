@@ -388,9 +388,9 @@ export const Application = () => {
                 className='div-upload'
                 style={{
                   background: `url(${imgUrl ||
-                    (actualGame.img
-                      ? actualGame.img.buffer
-                        ? getImgSrc(actualGame.img)
+                    (selectedToken.img
+                      ? selectedToken.img.buffer
+                        ? getImgSrc(selectedToken.img)
                         : 'https://www.hopkinsmedicine.org/-/media/feature/noimageavailable.ashx?h=260&la=en&mh=260&mw=380&w=380&hash=C84FD22E1194885A737D9CF821CC61A861630CB1'
                       : 'https://www.hopkinsmedicine.org/-/media/feature/noimageavailable.ashx?h=260&la=en&mh=260&mw=380&w=380&hash=C84FD22E1194885A737D9CF821CC61A861630CB1')}) no-repeat center/cover`,
                 }}
@@ -519,12 +519,12 @@ export const Application = () => {
 
   return (
     <div className={`app-layout ${drawer ? '' : 'hidden'}`}>
-      <div className="vt-container" ref={vtContainer}>
+      <div className='vt-container' ref={vtContainer}>
         {gameLoading ? (
           'Loading'
         ) : (
           <Stage
-            className="app"
+            className='app'
             width={stageWidth}
             height={stageHeight}
             options={{ antialias: true, backgroundColor: 0xffffff }}
@@ -540,7 +540,12 @@ export const Application = () => {
               <Token
                 key={token._id}
                 onTokenChange={onTokenChange}
-                tokenProps={{ ...token.tokenSetup, _id: token._id, idx, img: getImgSrc(token.img) || ArcherImg }}
+                tokenProps={{
+                  ...token.tokenSetup,
+                  _id: token._id,
+                  idx,
+                  img: token.img ? getImgSrc(token.img) : ArcherImg
+                }}
                 parentWidth={stageWidth}
                 parentHeight={stageHeight}
               />
@@ -548,59 +553,59 @@ export const Application = () => {
           </Stage>
         )}
       </div>
-      <div className="app-footer">
-        <div className="dice" onClick={rollDice}>
+      <div className='app-footer'>
+        <div className='dice' onClick={rollDice}>
           <span className={`${diceRoll.length === 2 ? 'double' : ''}`}>
             {diceRoll}
           </span>
           <img
-            className="menu-btn"
+            className='menu-btn'
             width={100}
             src={Icosahedron}
-            alt="Icosahedron"
+            alt='Icosahedron'
           />
         </div>
 
-        <div className="drawer-btn-container">
+        <div className='drawer-btn-container'>
           <Button
-            type="danger"
-            shape="circle"
-            icon="logout"
+            type='danger'
+            shape='circle'
+            icon='logout'
             onClick={closeGame}
           />
           <Button
-            type="primary"
-            shape="circle"
+            type='primary'
+            shape='circle'
             icon={drawer ? 'menu-unfold' : 'menu-fold'}
             onClick={toggleDrawer}
           />
         </div>
       </div>
-      <div className="app-drawer">
-        <div className="drawer-header">
+      <div className='app-drawer'>
+        <div className='drawer-header'>
           <Menu
             onClick={handleDrawerMenuClick}
             selectedKeys={[drawerMenu]}
-            mode="horizontal"
+            mode='horizontal'
           >
-            <Menu.Item key="chat">
+            <Menu.Item key='chat'>
               {msgCounter !== 0 ? (
                 <Badge count={msgCounter} overflowCount={10}>
-                  <Icon type="message" />
+                  <Icon type='message' />
                 </Badge>
               ) : (
-                <Icon type="message" />
+                <Icon type='message' />
               )}
             </Menu.Item>
-            <Menu.Item key="journal">
-              <Icon type="book" />
+            <Menu.Item key='journal'>
+              <Icon type='book' />
             </Menu.Item>
           </Menu>
         </div>
         {drawerBody}
       </div>
       <Dialog
-        width="1020px"
+        width='1020px'
         body={renderDialogBody()}
         closable={false}
         actions={getDialogButtons()}
