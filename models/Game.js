@@ -10,6 +10,7 @@ const GameSchema = mongoose.Schema({
       ref: 'user'
   }
   ],
+  backgroundImg: { buffer: Buffer, contentType: String },
   img: { buffer: Buffer, contentType: String },
   name: {
     type: String,

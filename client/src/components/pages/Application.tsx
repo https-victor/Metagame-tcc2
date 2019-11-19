@@ -6,7 +6,7 @@ import React, {
   useCallback,
   Fragment,
 } from 'react';
-import { Stage } from '@inlet/react-pixi';
+import { Stage, Sprite } from '@inlet/react-pixi';
 import {
   Button, Menu, Icon, Badge, Avatar, 
 } from 'antd';
@@ -245,7 +245,7 @@ export const Application = () => {
         form.onSet({
           name: token.name,
           description: token.description,
-          img: token.img,
+          hp: token.hp,
           type: token.type,
         });
       }
@@ -297,7 +297,7 @@ export const Application = () => {
             {tokenList.map((token: any) => (
               <div key={token._id} className="token-journal">
                 <div className="token-info">
-                  <Avatar shape="square" icon="file-image" />
+                  <Avatar shape="square" icon={`${token.img?undefined:'file-image'}`} src={token.img ? getImgSrc(token.img) : undefined} />
                   <span>{token.name}</span>
                 </div>
                 <div className="token-actions">
@@ -411,10 +411,10 @@ export const Application = () => {
               onChange={form.onChange('description', eventTargetValue)}
             />
             <Input
-              value={form.values.img}
-              label='Imagem:'
-              error={form.errors.img}
-              onChange={form.onChange('img', eventTargetValue)}
+              value={form.values.hp}
+              label='HP:'
+              error={form.errors.hp}
+              onChange={form.onChange('hp', eventTargetValue)}
             />
             <Input
               value={form.values.type}
@@ -529,6 +529,12 @@ export const Application = () => {
             height={stageHeight}
             options={{ antialias: true, backgroundColor: 0xffffff }}
           >
+            <Sprite
+            width={stageWidth}
+            height={stageHeight}
+            anchor={0}
+            image={actualGame.img ? getImgSrc(actualGame.img) : ArcherImg}
+            />
             <Grid
               x={0}
               y={0}
@@ -544,7 +550,9 @@ export const Application = () => {
                   ...token.tokenSetup,
                   _id: token._id,
                   idx,
-                  img: token.img ? getImgSrc(token.img) : ArcherImg
+                  name:token.name,
+                  img: token.img ? getImgSrc(token.img) : ArcherImg,
+                  hp: token.hp
                 }}
                 parentWidth={stageWidth}
                 parentHeight={stageHeight}

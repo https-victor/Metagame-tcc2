@@ -86,6 +86,7 @@ exports.onUpdateToken = async function(io, gameId, tokenId, token, fields) {
       name: fields.name,
       description: fields.description ? fields.description : undefined,
       type: fields.type ? fields.type : undefined,
+      hp: fields.hp ? fields.hp : undefined,
       authorizedPlayers: [{ _id: user.id, name: userName.name }],
       updatedAt: Date.now()
     };

@@ -8,15 +8,16 @@ const TokenSchema = mongoose.Schema({
     description: {
       type: String,
     },
+    hp: {
+      type: Number,
+      default: 100
+    },
     tokenSetup: {
       x:{ type: Number, default: 40},
       y:{ type: Number, default: 40},
       alpha: { type: Number, default: 1},
       scale: {type: Number,default: 1},
-      hp: {
-        type: Number,
-        default: 100
-      },
+      
     },
     img: { buffer: Buffer, contentType: String },
     createdAt: {
