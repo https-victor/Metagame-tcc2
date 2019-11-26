@@ -12,21 +12,20 @@ export const Welcome = () => {
         <img src={pigeonMage} alt="" width={250} />
         <div className="hero-text-container">
           <div className="hero-text signup">
-            <p>Ready to begin your new adventure?</p>
-            <h1>Roll the Dice!</h1>
+            <p>Pronto para começar sua nova aventura?</p>
+            <h1>Role seus Dados!</h1>
           </div>
           <Button type="primary" onClick={() => history.push('/signup')}>
-            Create your free account
+            Criar conta grátis
           </Button>
         </div>
       </div>
       <div className="hero-image">
         <div className="hero-text info">
-          <h2>Discover the magical world of role-playing!</h2>
+          <h2>Descubra o mundo mágico de interpretação!</h2>
           <p>
             <em className="strong">Metagame </em>
-            is a new experience in tabletop gaming. Gather your friends or meet
-            new ones and start a campaign, it’s free!
+            é uma nova experiência em jogos de tabuleiro. Reúna seus amigos ou faça novos e comece uma nova campanha, é grátis!
           </p>
         </div>
         <img src={pigeonBard} alt="" width={250} />
