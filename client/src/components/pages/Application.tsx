@@ -297,7 +297,7 @@ export const Application = () => {
             {tokenList.map((token: any) => (
               <div key={token._id} className="token-journal">
                 <div className="token-info">
-                  <Avatar shape="square" icon={`${token.img?undefined:'file-image'}`} src={token.img ? getImgSrc(token.img) : undefined} />
+                  <Avatar shape="square" icon={`${token.img?undefined:'file-image'}`} src={token.img ? Object.keys(token.img).length > 0 ? getImgSrc(token.img) : undefined : undefined} />
                   <span>{token.name}</span>
                 </div>
                 <div className="token-actions">
@@ -388,11 +388,12 @@ export const Application = () => {
                 className='div-upload'
                 style={{
                   background: `url(${imgUrl ||
-                    (selectedToken.img
+                    (selectedToken.img ? (Object.keys(selectedToken.img).length > 0
                       ? selectedToken.img.buffer
                         ? getImgSrc(selectedToken.img)
                         : 'https://www.hopkinsmedicine.org/-/media/feature/noimageavailable.ashx?h=260&la=en&mh=260&mw=380&w=380&hash=C84FD22E1194885A737D9CF821CC61A861630CB1'
-                      : 'https://www.hopkinsmedicine.org/-/media/feature/noimageavailable.ashx?h=260&la=en&mh=260&mw=380&w=380&hash=C84FD22E1194885A737D9CF821CC61A861630CB1')}) no-repeat center/cover`,
+                      : 'https://www.hopkinsmedicine.org/-/media/feature/noimageavailable.ashx?h=260&la=en&mh=260&mw=380&w=380&hash=C84FD22E1194885A737D9CF821CC61A861630CB1')
+                      : 'https://www.hopkinsmedicine.org/-/media/feature/noimageavailable.ashx?h=260&la=en&mh=260&mw=380&w=380&hash=C84FD22E1194885A737D9CF821CC61A861630CB1')}) no-repeat center/cover`
                 }}
               >
                 <span>Upload</span>
@@ -517,6 +518,21 @@ export const Application = () => {
     }
   };
 
+  let backgroundSprite:any = undefined;
+    if (actualGame.img) {
+      if (Object.keys(actualGame.img).length > 0) {
+        backgroundSprite = (
+          <Sprite
+            width={stageWidth}
+            height={stageHeight}
+            anchor={0}
+            image={getImgSrc(actualGame.img)}
+          />
+        );
+      }
+    };
+
+
   return (
     <div className={`app-layout ${drawer ? '' : 'hidden'}`}>
       <div className='vt-container' ref={vtContainer}>
@@ -529,12 +545,7 @@ export const Application = () => {
             height={stageHeight}
             options={{ antialias: true, backgroundColor: 0xffffff }}
           >
-            <Sprite
-            width={stageWidth}
-            height={stageHeight}
-            anchor={0}
-            image={actualGame.img ? getImgSrc(actualGame.img) : ArcherImg}
-            />
+            {backgroundSprite}
             <Grid
               x={0}
               y={0}
@@ -550,9 +561,13 @@ export const Application = () => {
                   ...token.tokenSetup,
                   _id: token._id,
                   idx,
-                  name:token.name,
-                  img: token.img ? getImgSrc(token.img) : ArcherImg,
-                  hp: token.hp
+                  name: token.name,
+                  img: token.img
+                    ? Object.keys(token.img).length > 0
+                      ? getImgSrc(token.img)
+                      : ArcherImg
+                    : ArcherImg,
+                  hp: token.hp,
                 }}
                 parentWidth={stageWidth}
                 parentHeight={stageHeight}
